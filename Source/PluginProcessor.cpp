@@ -2,17 +2,29 @@
 #include "PluginEditor.h"
 
 MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
-    : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      parameters(*this, nullptr, juce::Identifier("MiniSynthesizer"),
-                 {
-                     std::make_unique<juce::AudioParameterFloat>("osc1tuning", "Oscillator 1 Tuning", juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f),
-                     std::make_unique<juce::AudioParameterFloat>("osc2tuning", "Oscillator 2 Tuning", juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f)
-                 })
+    : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+      parameters (*this, nullptr, juce::Identifier ("MiniSynthesizer"),
+                  {
+                      std::make_unique<juce::AudioParameterFloat> ("osc1tuning", "Oscillator 1 Tuning", juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f),
+                      std::make_unique<juce::AudioParameterFloat> ("osc2tuning", "Oscillator 2 Tuning", juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f),
+                      std::make_unique<juce::AudioParameterChoice>("osc1range", "Oscillator 1 Range", juce::StringArray{"32'", "16'", "8'", "4'", "2'"}, 2),
+                      std::make_unique<juce::AudioParameterChoice>("osc2range", "Oscillator 2 Range", juce::StringArray{"32'", "16'", "8'", "4'", "2'"}, 2),
+                      std::make_unique<juce::AudioParameterChoice>("osc1waveform", "Oscillator 1 Waveform", juce::StringArray{"Sine", "Triangle", "Pulse"}, 0),
+                      std::make_unique<juce::AudioParameterChoice>("osc2waveform", "Oscillator 2 Waveform", juce::StringArray{"Sine", "Triangle", "Pulse"}, 0),
+                      std::make_unique<juce::AudioParameterFloat> ("osc1pwm", "Oscillator 1 PWM", 0.0f, 1.0f, 0.5f),
+                      std::make_unique<juce::AudioParameterFloat> ("osc2pwm", "Oscillator 2 PWM", 0.0f, 1.0f, 0.5f)
+                  })
 {
-    osc1TuningParam = parameters.getRawParameterValue("osc1tuning");
-    osc2TuningParam = parameters.getRawParameterValue("osc2tuning");
+    osc1TuningParam = parameters.getRawParameterValue ("osc1tuning");
+    osc2TuningParam = parameters.getRawParameterValue ("osc2tuning");
+    osc1RangeParam = parameters.getRawParameterValue ("osc1range");
+    osc2RangeParam = parameters.getRawParameterValue ("osc2range");
+    osc1WaveformParam = parameters.getRawParameterValue ("osc1waveform");
+    osc2WaveformParam = parameters.getRawParameterValue ("osc2waveform");
+    osc1PWMParam = parameters.getRawParameterValue ("osc1pwm");
+    osc2PWMParam = parameters.getRawParameterValue ("osc2pwm");
 
-    if (osc1TuningParam == nullptr || osc2TuningParam == nullptr)
+    if (osc1TuningParam == nullptr || osc2TuningParam == nullptr || osc1RangeParam == nullptr || osc2RangeParam == nullptr || osc1WaveformParam == nullptr || osc2WaveformParam == nullptr || osc1PWMParam == nullptr || osc2PWMParam == nullptr)
     {
         jassertfalse; // This will trigger a breakpoint in debug mode
         DBG("Failed to get raw parameter values");
@@ -21,8 +33,8 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     synth.clearVoices();
     synth.clearSounds();
 
-    synth.addSound(new SineWaveSound());
-    synth.addVoice(new SineWaveVoice(osc1TuningParam, osc2TuningParam));
+    synth.addSound (new SineWaveSound());
+    synth.addVoice (new SineWaveVoice (osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam));
 
     DBG("MiniSynthesizerAudioProcessor constructor completed");
 }
@@ -161,16 +173,26 @@ void MiniSynthesizerAudioProcessor::setStateInformation(const void* data, int si
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
-MiniSynthesizerAudioProcessor::SineWaveVoice::SineWaveVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam)
-    : osc1TuningParameter(osc1TuningParam), osc2TuningParameter(osc2TuningParam)
+MiniSynthesizerAudioProcessor::SineWaveVoice::SineWaveVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam,
+                                                            std::atomic<float>* osc1RangeParam, std::atomic<float>* osc2RangeParam,
+                                                            std::atomic<float>* osc1WaveformParam, std::atomic<float>* osc2WaveformParam,
+                                                            std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam)
+    : osc1TuningParameter(osc1TuningParam), osc2TuningParameter(osc2TuningParam),
+      osc1RangeParameter(osc1RangeParam), osc2RangeParameter(osc2RangeParam),
+      osc1WaveformParameter(osc1WaveformParam), osc2WaveformParameter(osc2WaveformParam),
+      osc1PWMParameter(osc1PWMParam), osc2PWMParameter(osc2PWMParam)
 {
-    if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr)
+    if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr ||
+        osc1RangeParameter == nullptr || osc2RangeParameter == nullptr ||
+        osc1WaveformParameter == nullptr || osc2WaveformParameter == nullptr ||
+        osc1PWMParameter == nullptr || osc2PWMParameter == nullptr)
     {
         jassertfalse; // This will trigger a breakpoint in debug mode
-        DBG("SineWaveVoice constructor received null tuningParam");
+        DBG("SineWaveVoice constructor received null parameter");
     }
     DBG("SineWaveVoice constructor completed");
 }
+
 
 bool MiniSynthesizerAudioProcessor::SineWaveVoice::canPlaySound(juce::SynthesiserSound* sound)
 {

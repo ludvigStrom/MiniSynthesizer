@@ -40,10 +40,20 @@ public:
 
     juce::AudioProcessorValueTreeState parameters;
 
+    enum Waveform
+    {
+        Sine = 0,
+        Triangle,
+        Pulse
+    };
+
     class SineWaveVoice : public juce::SynthesiserVoice
     {
     public:
-        SineWaveVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam);
+        SineWaveVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam,
+                      std::atomic<float>* osc1RangeParam, std::atomic<float>* osc2RangeParam,
+                      std::atomic<float>* osc1WaveformParam, std::atomic<float>* osc2WaveformParam,
+                      std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam);
         ~SineWaveVoice() override = default;
 
         bool canPlaySound(juce::SynthesiserSound* sound) override;
@@ -57,6 +67,13 @@ public:
     private:
         std::atomic<float>* osc1TuningParameter;
         std::atomic<float>* osc2TuningParameter;
+        std::atomic<float>* osc1RangeParameter;
+        std::atomic<float>* osc2RangeParameter;
+        std::atomic<float>* osc1WaveformParameter;
+        std::atomic<float>* osc2WaveformParameter;
+        std::atomic<float>* osc1PWMParameter;
+        std::atomic<float>* osc2PWMParameter;
+
         double currentSampleRate = 44100.0;
         double currentAngle1 = 0.0;
         double currentAngle2 = 0.0;
@@ -96,6 +113,12 @@ private:
     juce::Synthesiser synth;
     std::atomic<float>* osc1TuningParam = nullptr;
     std::atomic<float>* osc2TuningParam = nullptr;
+    std::atomic<float>* osc1RangeParam = nullptr;
+    std::atomic<float>* osc2RangeParam = nullptr;
+    std::atomic<float>* osc1WaveformParam = nullptr;
+    std::atomic<float>* osc2WaveformParam = nullptr;
+    std::atomic<float>* osc1PWMParam = nullptr;
+    std::atomic<float>* osc2PWMParam = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessor)
 };
