@@ -1,0 +1,68 @@
+# JUCE Builds
+Builds/
+.jucer
+*.jucer
+
+# Xcode specific
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.xcworkspace
+
+# Visual Studio specific
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.opendb
+ipch/
+obj/
+Debug/
+DebugPublic/
+Release/
+ReleasePublic/
+releases/
+*_i.c
+*_p.c
+*_i.cpp
+*_p.cpp
+*.ncb
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+.vscode/
+.vs/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# General files to ignore
+*.log
+*.temp
+*.tmp
+*.bak
+*.swp
+
+# Backup files
+*.bak
+*.bak2
+*.backup
+*.old
+*.orig
+*.tmp
+*.orig.*
+
+# Other
+.idea/
+
