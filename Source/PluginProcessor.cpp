@@ -1,34 +1,37 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
-                     #endif
-                       )
-#endif
+    : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      parameters(*this, nullptr, juce::Identifier("MiniSynthesizer"),
+                 {
+                     std::make_unique<juce::AudioParameterFloat>("osc1tuning", "Oscillator 1 Tuning", juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f),
+                     std::make_unique<juce::AudioParameterFloat>("osc2tuning", "Oscillator 2 Tuning", juce::NormalisableRange<float>(-12.0f, 12.0f), 0.0f)
+                 })
 {
+    osc1TuningParam = parameters.getRawParameterValue("osc1tuning");
+    osc2TuningParam = parameters.getRawParameterValue("osc2tuning");
+
+    if (osc1TuningParam == nullptr || osc2TuningParam == nullptr)
+    {
+        jassertfalse; // This will trigger a breakpoint in debug mode
+        DBG("Failed to get raw parameter values");
+    }
+
+    synth.clearVoices();
+    synth.clearSounds();
+
+    synth.addSound(new SineWaveSound());
+    synth.addVoice(new SineWaveVoice(osc1TuningParam, osc2TuningParam));
+
+    DBG("MiniSynthesizerAudioProcessor constructor completed");
 }
 
 MiniSynthesizerAudioProcessor::~MiniSynthesizerAudioProcessor()
 {
+    DBG("MiniSynthesizerAudioProcessor destructor called");
 }
 
-//==============================================================================
 const juce::String MiniSynthesizerAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -36,29 +39,17 @@ const juce::String MiniSynthesizerAudioProcessor::getName() const
 
 bool MiniSynthesizerAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
     return true;
-   #else
-    return false;
-   #endif
 }
 
 bool MiniSynthesizerAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
-    return true;
-   #else
     return false;
-   #endif
 }
 
 bool MiniSynthesizerAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
     return false;
-   #endif
 }
 
 double MiniSynthesizerAudioProcessor::getTailLengthSeconds() const
@@ -77,48 +68,47 @@ int MiniSynthesizerAudioProcessor::getCurrentProgram()
     return 0;
 }
 
-void MiniSynthesizerAudioProcessor::setCurrentProgram (int index)
+void MiniSynthesizerAudioProcessor::setCurrentProgram(int index)
 {
 }
 
-const juce::String MiniSynthesizerAudioProcessor::getProgramName (int index)
+const juce::String MiniSynthesizerAudioProcessor::getProgramName(int index)
 {
     return {};
 }
 
-void MiniSynthesizerAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void MiniSynthesizerAudioProcessor::changeProgramName(int index, const juce::String& newName)
 {
 }
 
-//==============================================================================
-void MiniSynthesizerAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void MiniSynthesizerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    DBG("Preparing to play with sample rate: " << sampleRate << " and block size: " << samplesPerBlock);
+    synth.setCurrentPlaybackSampleRate(sampleRate);
+
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto voice = dynamic_cast<SineWaveVoice*>(synth.getVoice(i)))
+            voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
+    }
 }
 
 void MiniSynthesizerAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    DBG("Releasing resources");
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool MiniSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool MiniSynthesizerAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
-    juce::ignoreUnused (layouts);
+    juce::ignoreUnused(layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // This checks if the input layout matches the output layout
    #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
@@ -129,63 +119,177 @@ bool MiniSynthesizerAudioProcessor::isBusesLayoutSupported (const BusesLayout& l
 }
 #endif
 
-void MiniSynthesizerAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear (i, 0, buffer.getNumSamples());
+        buffer.clear(i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
+    DBG("Processing block: " << buffer.getNumSamples() << " samples");
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+    DBG("Block processed");
 }
 
-//==============================================================================
 bool MiniSynthesizerAudioProcessor::hasEditor() const
 {
-    return true; // (change this to false if you choose to not supply an editor)
+    return true;
 }
 
 juce::AudioProcessorEditor* MiniSynthesizerAudioProcessor::createEditor()
 {
-    return new MiniSynthesizerAudioProcessorEditor (*this);
+    return new MiniSynthesizerAudioProcessorEditor(*this, parameters);
 }
 
-//==============================================================================
-void MiniSynthesizerAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void MiniSynthesizerAudioProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    DBG("Saving state information");
+    auto state = parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
-void MiniSynthesizerAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void MiniSynthesizerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    DBG("Loading state information");
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName(parameters.state.getType()))
+            parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
+MiniSynthesizerAudioProcessor::SineWaveVoice::SineWaveVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam)
+    : osc1TuningParameter(osc1TuningParam), osc2TuningParameter(osc2TuningParam)
+{
+    if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr)
+    {
+        jassertfalse; // This will trigger a breakpoint in debug mode
+        DBG("SineWaveVoice constructor received null tuningParam");
+    }
+    DBG("SineWaveVoice constructor completed");
+}
+
+bool MiniSynthesizerAudioProcessor::SineWaveVoice::canPlaySound(juce::SynthesiserSound* sound)
+{
+    return dynamic_cast<SineWaveSound*>(sound) != nullptr;
+}
+
+void MiniSynthesizerAudioProcessor::SineWaveVoice::startNote(int midiNoteNumber, float velocity,
+                                                             juce::SynthesiserSound*, int /*currentPitchWheelPosition*/)
+{
+    currentAngle1 = 0.0;
+    currentAngle2 = 0.0;
+    level = 0.0f;
+    tailOff = 0.0f;
+    isNoteOn = true;
+
+    if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr)
+    {
+        jassertfalse; // This will trigger a breakpoint in debug mode
+        DBG("tuningParameter is null in startNote");
+        return;
+    }
+
+    double baseFrequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+    double osc1Frequency = baseFrequency * std::pow(2.0, osc1TuningParameter->load() / 12.0);
+    double osc2Frequency = baseFrequency * std::pow(2.0, osc2TuningParameter->load() / 12.0);
+
+    double targetPitch = std::min(osc1Frequency, osc2Frequency);
+    double carrierPitch = calculateCarrierPitch(targetPitch, osc1Frequency);
+
+    osc1Frequency = carrierPitch; // Set the carrier frequency for oscillator 1
+
+    double cyclesPerSample1 = osc1Frequency / currentSampleRate;
+    double cyclesPerSample2 = osc2Frequency / currentSampleRate;
+    angleDelta1 = cyclesPerSample1 * 2.0 * juce::MathConstants<double>::pi;
+    angleDelta2 = cyclesPerSample2 * 2.0 * juce::MathConstants<double>::pi;
+
+    DBG("Note started: " << midiNoteNumber << " with velocity " << velocity);
+    DBG("Oscillator 1 Frequency: " << osc1Frequency);
+    DBG("Oscillator 2 Frequency: " << osc2Frequency);
+}
+
+void MiniSynthesizerAudioProcessor::SineWaveVoice::stopNote(float velocity, bool allowTailOff)
+{
+    isNoteOn = false;
+
+    if (allowTailOff)
+    {
+        tailOff = 1.0f; // Begin tail-off
+    }
+    else
+    {
+        clearCurrentNote();
+        angleDelta1 = 0.0;
+        angleDelta2 = 0.0;
+    }
+    DBG("Note stopped");
+}
+
+void MiniSynthesizerAudioProcessor::SineWaveVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
+                                                                   int startSample, int numSamples)
+{
+    if (angleDelta1 != 0.0 || angleDelta2 != 0.0)
+    {
+        for (int sample = 0; sample < numSamples; ++sample)
+        {
+            float currentSample1 = (float)(std::sin(currentAngle1) * level);
+            float currentSample2 = (float)(std::sin(currentAngle2) * level);
+
+            // Apply ring modulation
+            float currentSample = currentSample1 * currentSample2;
+
+            for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
+            {
+                outputBuffer.addSample(channel, startSample, currentSample);
+            }
+
+            currentAngle1 += angleDelta1;
+            currentAngle2 += angleDelta2;
+            ++startSample;
+
+            if (isNoteOn)
+            {
+                // Attack phase
+                if (level < 0.15f && tailOff == 0.0f)
+                {
+                    level += (0.15f / (attackTime * currentSampleRate));
+                    if (level > 0.15f)
+                        level = 0.15f;
+                }
+                // Sustain phase
+                else if (level > 0.15f)
+                {
+                    level = 0.15f * sustainLevel;
+                }
+            }
+            else if (tailOff > 0.0f)
+            {
+                // Release phase
+                level -= (0.15f * sustainLevel / (releaseTime * currentSampleRate));
+                if (level <= 0.0f)
+                {
+                    clearCurrentNote();
+                    angleDelta1 = 0.0;
+                    angleDelta2 = 0.0;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void MiniSynthesizerAudioProcessor::SineWaveVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
+{
+    currentSampleRate = sampleRate;
+    DBG("SineWaveVoice prepared with sample rate: " << sampleRate);
+}
+
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
+    DBG("Creating MiniSynthesizerAudioProcessor");
     return new MiniSynthesizerAudioProcessor();
 }

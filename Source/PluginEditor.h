@@ -1,33 +1,28 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #pragma once
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-//==============================================================================
-/**
-*/
 class MiniSynthesizerAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    MiniSynthesizerAudioProcessorEditor (MiniSynthesizerAudioProcessor&);
+    MiniSynthesizerAudioProcessorEditor (MiniSynthesizerAudioProcessor&, juce::AudioProcessorValueTreeState&);
     ~MiniSynthesizerAudioProcessorEditor() override;
 
-    //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
 
 private:
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     MiniSynthesizerAudioProcessor& audioProcessor;
+    juce::AudioProcessorValueTreeState& valueTreeState;
+
+    juce::Slider osc1TuningSlider;
+    juce::Slider osc2TuningSlider;
+    juce::Label osc1Label;
+    juce::Label osc2Label;
+
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc1TuningAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2TuningAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessorEditor)
 };
