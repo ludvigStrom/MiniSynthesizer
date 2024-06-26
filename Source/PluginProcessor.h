@@ -47,14 +47,14 @@ public:
         Pulse
     };
 
-    class SineWaveVoice : public juce::SynthesiserVoice
+    class OscillatorVoice : public juce::SynthesiserVoice
     {
     public:
-        SineWaveVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam,
-                      std::atomic<float>* osc1RangeParam, std::atomic<float>* osc2RangeParam,
-                      std::atomic<float>* osc1WaveformParam, std::atomic<float>* osc2WaveformParam,
-                      std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam);
-        ~SineWaveVoice() override = default;
+        OscillatorVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam,
+                        std::atomic<float>* osc1RangeParam, std::atomic<float>* osc2RangeParam,
+                        std::atomic<float>* osc1WaveformParam, std::atomic<float>* osc2WaveformParam,
+                        std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam);
+        ~OscillatorVoice() override = default;
 
         bool canPlaySound(juce::SynthesiserSound* sound) override;
         void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound*, int) override;
@@ -74,11 +74,10 @@ public:
         std::atomic<float>* osc1PWMParameter;
         std::atomic<float>* osc2PWMParameter;
 
+        juce::dsp::Oscillator<float> osc1;
+        juce::dsp::Oscillator<float> osc2;
+
         double currentSampleRate = 44100.0;
-        double currentAngle1 = 0.0;
-        double currentAngle2 = 0.0;
-        double angleDelta1 = 0.0;
-        double angleDelta2 = 0.0;
         float level = 0.0f;
         float tailOff = 0.0f;
 
@@ -90,15 +89,7 @@ public:
 
         bool isNoteOn = false;
 
-        // Function to calculate carrier pitch
-        double calculateCarrierPitch(double targetPitch, double currentPitch)
-        {
-            if (currentPitch == 0)
-            {
-                throw std::invalid_argument("Current pitch cannot be zero");
-            }
-            return targetPitch / currentPitch;
-        }
+        void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType);
     };
 
 private:
