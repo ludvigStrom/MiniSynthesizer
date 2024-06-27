@@ -13,7 +13,15 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
                      std::make_unique<juce::AudioParameterChoice>("osc1waveform", "Oscillator 1 Waveform", juce::StringArray{"Sine", "Triangle", "Pulse"}, 0),
                      std::make_unique<juce::AudioParameterChoice>("osc2waveform", "Oscillator 2 Waveform", juce::StringArray{"Sine", "Triangle", "Pulse"}, 0),
                      std::make_unique<juce::AudioParameterFloat>("osc1pwm", "Oscillator 1 PWM", 0.0f, 1.0f, 0.5f),
-                     std::make_unique<juce::AudioParameterFloat>("osc2pwm", "Oscillator 2 PWM", 0.0f, 1.0f, 0.5f)
+                     std::make_unique<juce::AudioParameterFloat>("osc2pwm", "Oscillator 2 PWM", 0.0f, 1.0f, 0.5f),
+                     std::make_unique<juce::AudioParameterFloat>("osc1attack", "Oscillator 1 Attack", 0.0f, 5.0f, 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>("osc1decay", "Oscillator 1 Decay", 0.0f, 5.0f, 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>("osc1sustain", "Oscillator 1 Sustain", 0.0f, 1.0f, 0.8f),
+                     std::make_unique<juce::AudioParameterFloat>("osc1release", "Oscillator 1 Release", 0.0f, 5.0f, 0.5f),
+                     std::make_unique<juce::AudioParameterFloat>("osc2attack", "Oscillator 2 Attack", 0.0f, 5.0f, 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>("osc2decay", "Oscillator 2 Decay", 0.0f, 5.0f, 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>("osc2sustain", "Oscillator 2 Sustain", 0.0f, 1.0f, 0.8f),
+                     std::make_unique<juce::AudioParameterFloat>("osc2release", "Oscillator 2 Release", 0.0f, 5.0f, 0.5f)
                  })
 {
     osc1TuningParam = parameters.getRawParameterValue("osc1tuning");
@@ -24,11 +32,23 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     osc2WaveformParam = parameters.getRawParameterValue("osc2waveform");
     osc1PWMParam = parameters.getRawParameterValue("osc1pwm");
     osc2PWMParam = parameters.getRawParameterValue("osc2pwm");
+    osc1AttackParam = parameters.getRawParameterValue("osc1attack");
+    osc1DecayParam = parameters.getRawParameterValue("osc1decay");
+    osc1SustainParam = parameters.getRawParameterValue("osc1sustain");
+    osc1ReleaseParam = parameters.getRawParameterValue("osc1release");
+    osc2AttackParam = parameters.getRawParameterValue("osc2attack");
+    osc2DecayParam = parameters.getRawParameterValue("osc2decay");
+    osc2SustainParam = parameters.getRawParameterValue("osc2sustain");
+    osc2ReleaseParam = parameters.getRawParameterValue("osc2release");
 
     if (osc1TuningParam == nullptr || osc2TuningParam == nullptr ||
         osc1RangeParam == nullptr || osc2RangeParam == nullptr ||
         osc1WaveformParam == nullptr || osc2WaveformParam == nullptr ||
-        osc1PWMParam == nullptr || osc2PWMParam == nullptr)
+        osc1PWMParam == nullptr || osc2PWMParam == nullptr ||
+        osc1AttackParam == nullptr || osc1DecayParam == nullptr ||
+        osc1SustainParam == nullptr || osc1ReleaseParam == nullptr ||
+        osc2AttackParam == nullptr || osc2DecayParam == nullptr ||
+        osc2SustainParam == nullptr || osc2ReleaseParam == nullptr)
     {
         jassertfalse; // This will trigger a breakpoint in debug mode
         DBG("Failed to get raw parameter values");
@@ -38,7 +58,7 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     synth.clearSounds();
 
     synth.addSound(new SineWaveSound());
-    synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam));
+    synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam));
 
     DBG("MiniSynthesizerAudioProcessor constructor completed");
 }
@@ -180,17 +200,29 @@ void MiniSynthesizerAudioProcessor::setStateInformation(const void* data, int si
 MiniSynthesizerAudioProcessor::OscillatorVoice::OscillatorVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam,
                                                                 std::atomic<float>* osc1RangeParam, std::atomic<float>* osc2RangeParam,
                                                                 std::atomic<float>* osc1WaveformParam, std::atomic<float>* osc2WaveformParam,
-                                                                std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam)
+                                                                std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam,
+                                                                std::atomic<float>* osc1AttackParam, std::atomic<float>* osc1DecayParam,
+                                                                std::atomic<float>* osc1SustainParam, std::atomic<float>* osc1ReleaseParam,
+                                                                std::atomic<float>* osc2AttackParam, std::atomic<float>* osc2DecayParam,
+                                                                std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam)
     : osc1TuningParameter(osc1TuningParam), osc2TuningParameter(osc2TuningParam),
       osc1RangeParameter(osc1RangeParam), osc2RangeParameter(osc2RangeParam),
       osc1WaveformParameter(osc1WaveformParam), osc2WaveformParameter(osc2WaveformParam),
       osc1PWMParameter(osc1PWMParam), osc2PWMParameter(osc2PWMParam),
+      osc1AttackParameter(osc1AttackParam), osc1DecayParameter(osc1DecayParam),
+      osc1SustainParameter(osc1SustainParam), osc1ReleaseParameter(osc1ReleaseParam),
+      osc2AttackParameter(osc2AttackParam), osc2DecayParameter(osc2DecayParam),
+      osc2SustainParameter(osc2SustainParam), osc2ReleaseParameter(osc2ReleaseParam),
       osc1([](float x) { return std::sin(x); }), osc2([](float x) { return std::sin(x); })
 {
     if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr ||
         osc1RangeParameter == nullptr || osc2RangeParameter == nullptr ||
         osc1WaveformParameter == nullptr || osc2WaveformParameter == nullptr ||
-        osc1PWMParameter == nullptr || osc2PWMParameter == nullptr)
+        osc1PWMParameter == nullptr || osc2PWMParameter == nullptr ||
+        osc1AttackParameter == nullptr || osc1DecayParameter == nullptr ||
+        osc1SustainParameter == nullptr || osc1ReleaseParameter == nullptr ||
+        osc2AttackParameter == nullptr || osc2DecayParameter == nullptr ||
+        osc2SustainParameter == nullptr || osc2ReleaseParameter == nullptr)
     {
         jassertfalse; // This will trigger a breakpoint in debug mode
         DBG("OscillatorVoice constructor received null parameter");
@@ -277,20 +309,20 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
                 // Attack phase
                 if (level < 0.15f && tailOff == 0.0f)
                 {
-                    level += (0.15f / (attackTime * currentSampleRate));
+                    level += (0.15f / (osc1AttackParameter->load() * currentSampleRate));
                     if (level > 0.15f)
                         level = 0.15f;
                 }
                 // Sustain phase
                 else if (level > 0.15f)
                 {
-                    level = 0.15f * sustainLevel;
+                    level = 0.15f * osc1SustainParameter->load();
                 }
             }
             else if (tailOff > 0.0f)
             {
                 // Release phase
-                level -= (0.15f * sustainLevel / (releaseTime * currentSampleRate));
+                level -= (0.15f * osc1SustainParameter->load() / (osc1ReleaseParameter->load() * currentSampleRate));
                 if (level <= 0.0f)
                 {
                     clearCurrentNote();

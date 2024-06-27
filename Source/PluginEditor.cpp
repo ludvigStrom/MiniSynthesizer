@@ -4,65 +4,143 @@
 MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSynthesizerAudioProcessor& p, juce::AudioProcessorValueTreeState& vts)
     : AudioProcessorEditor (&p), audioProcessor (p), valueTreeState (vts)
 {
-    // Oscillator 1 Range ComboBox
-    osc1RangeComboBox.addItemList({"32'", "16'", "8'", "4'", "2'"}, 1);
-    addAndMakeVisible(&osc1RangeComboBox);
-    osc1RangeAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(valueTreeState, "osc1range", osc1RangeComboBox));
-
-    // Oscillator 1 Waveform ComboBox
-    osc1WaveformComboBox.addItemList({"Sine", "Triangle", "Pulse"}, 1);
-    addAndMakeVisible(&osc1WaveformComboBox);
-    osc1WaveformAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(valueTreeState, "osc1waveform", osc1WaveformComboBox));
-
     // Oscillator 1 Tuning Slider
-    osc1TuningSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    osc1TuningSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
-    osc1TuningSlider.setPopupDisplayEnabled(true, false, this);
-    osc1TuningSlider.setTextValueSuffix(" semitones");
-    addAndMakeVisible(&osc1TuningSlider);
-    osc1TuningAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1tuning", osc1TuningSlider));
+    osc1TuningSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc1TuningSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc1TuningSlider.setPopupDisplayEnabled (true, false, this);
+    osc1TuningSlider.setTextValueSuffix (" semitones");
+    addAndMakeVisible (&osc1TuningSlider);
 
-    // Oscillator 1 PWM Slider
-    osc1PWMSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    osc1PWMSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
-    osc1PWMSlider.setPopupDisplayEnabled(true, false, this);
-    osc1PWMSlider.setTextValueSuffix(" PWM");
-    addAndMakeVisible(&osc1PWMSlider);
-    osc1PWMAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1pwm", osc1PWMSlider));
+    osc1TuningAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1tuning", osc1TuningSlider));
 
-    osc1Label.setText("Oscillator 1", juce::dontSendNotification);
-    addAndMakeVisible(&osc1Label);
-
-    // Oscillator 2 Range ComboBox
-    osc2RangeComboBox.addItemList({"32'", "16'", "8'", "4'", "2'"}, 1);
-    addAndMakeVisible(&osc2RangeComboBox);
-    osc2RangeAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(valueTreeState, "osc2range", osc2RangeComboBox));
-
-    // Oscillator 2 Waveform ComboBox
-    osc2WaveformComboBox.addItemList({"Sine", "Triangle", "Pulse"}, 1);
-    addAndMakeVisible(&osc2WaveformComboBox);
-    osc2WaveformAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(valueTreeState, "osc2waveform", osc2WaveformComboBox));
+    osc1Label.setText ("Oscillator 1 Tuning", juce::dontSendNotification);
+    osc1Label.attachToComponent (&osc1TuningSlider, false);
+    addAndMakeVisible (&osc1Label);
 
     // Oscillator 2 Tuning Slider
-    osc2TuningSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    osc2TuningSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
-    osc2TuningSlider.setPopupDisplayEnabled(true, false, this);
-    osc2TuningSlider.setTextValueSuffix(" semitones");
-    addAndMakeVisible(&osc2TuningSlider);
-    osc2TuningAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2tuning", osc2TuningSlider));
+    osc2TuningSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc2TuningSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc2TuningSlider.setPopupDisplayEnabled (true, false, this);
+    osc2TuningSlider.setTextValueSuffix (" semitones");
+    addAndMakeVisible (&osc2TuningSlider);
 
-    // Oscillator 2 PWM Slider
-    osc2PWMSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
-    osc2PWMSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 90, 0);
-    osc2PWMSlider.setPopupDisplayEnabled(true, false, this);
-    osc2PWMSlider.setTextValueSuffix(" PWM");
-    addAndMakeVisible(&osc2PWMSlider);
-    osc2PWMAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2pwm", osc2PWMSlider));
+    osc2TuningAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc2tuning", osc2TuningSlider));
 
-    osc2Label.setText("Oscillator 2", juce::dontSendNotification);
-    addAndMakeVisible(&osc2Label);
+    osc2Label.setText ("Oscillator 2 Tuning", juce::dontSendNotification);
+    osc2Label.attachToComponent (&osc2TuningSlider, false);
+    addAndMakeVisible (&osc2Label);
 
-    setSize(400, 600);
+    // Oscillator 1 ADSR Sliders
+    osc1AttackSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc1AttackSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc1AttackSlider);
+    osc1AttackAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1attack", osc1AttackSlider));
+    osc1AttackLabel.setText("Attack", juce::dontSendNotification);
+    osc1AttackLabel.attachToComponent(&osc1AttackSlider, false);
+    addAndMakeVisible(&osc1AttackLabel);
+
+    osc1DecaySlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc1DecaySlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc1DecaySlider);
+    osc1DecayAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1decay", osc1DecaySlider));
+    osc1DecayLabel.setText("Decay", juce::dontSendNotification);
+    osc1DecayLabel.attachToComponent(&osc1DecaySlider, false);
+    addAndMakeVisible(&osc1DecayLabel);
+
+    osc1SustainSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc1SustainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc1SustainSlider);
+    osc1SustainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1sustain", osc1SustainSlider));
+    osc1SustainLabel.setText("Sustain", juce::dontSendNotification);
+    osc1SustainLabel.attachToComponent(&osc1SustainSlider, false);
+    addAndMakeVisible(&osc1SustainLabel);
+
+    osc1ReleaseSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc1ReleaseSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc1ReleaseSlider);
+    osc1ReleaseAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1release", osc1ReleaseSlider));
+    osc1ReleaseLabel.setText("Release", juce::dontSendNotification);
+    osc1ReleaseLabel.attachToComponent(&osc1ReleaseSlider, false);
+    addAndMakeVisible(&osc1ReleaseLabel);
+
+    // Oscillator 2 ADSR Sliders
+    osc2AttackSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc2AttackSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc2AttackSlider);
+    osc2AttackAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2attack", osc2AttackSlider));
+    osc2AttackLabel.setText("Attack", juce::dontSendNotification);
+    osc2AttackLabel.attachToComponent(&osc2AttackSlider, false);
+    addAndMakeVisible(&osc2AttackLabel);
+
+    osc2DecaySlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc2DecaySlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc2DecaySlider);
+    osc2DecayAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2decay", osc2DecaySlider));
+    osc2DecayLabel.setText("Decay", juce::dontSendNotification);
+    osc2DecayLabel.attachToComponent(&osc2DecaySlider, false);
+    addAndMakeVisible(&osc2DecayLabel);
+
+    osc2SustainSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc2SustainSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc2SustainSlider);
+    osc2SustainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2sustain", osc2SustainSlider));
+    osc2SustainLabel.setText("Sustain", juce::dontSendNotification);
+    osc2SustainLabel.attachToComponent(&osc2SustainSlider, false);
+    addAndMakeVisible(&osc2SustainLabel);
+
+    osc2ReleaseSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc2ReleaseSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&osc2ReleaseSlider);
+    osc2ReleaseAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2release", osc2ReleaseSlider));
+    osc2ReleaseLabel.setText("Release", juce::dontSendNotification);
+    osc2ReleaseLabel.attachToComponent(&osc2ReleaseSlider, false);
+    addAndMakeVisible(&osc2ReleaseLabel);
+
+    // Oscillator 1 PWM, Range, and Waveform Sliders
+    osc1PWMSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc1PWMSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc1PWMSlider.setPopupDisplayEnabled (true, false, this);
+    addAndMakeVisible (&osc1PWMSlider);
+
+    osc1PWMAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1pwm", osc1PWMSlider));
+
+    osc1RangeSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc1RangeSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc1RangeSlider.setPopupDisplayEnabled (true, false, this);
+    addAndMakeVisible (&osc1RangeSlider);
+
+    osc1RangeAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1range", osc1RangeSlider));
+
+    osc1WaveformSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc1WaveformSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc1WaveformSlider.setPopupDisplayEnabled (true, false, this);
+    addAndMakeVisible (&osc1WaveformSlider);
+
+    osc1WaveformAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1waveform", osc1WaveformSlider));
+
+    // Oscillator 2 PWM, Range, and Waveform Sliders
+    osc2PWMSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc2PWMSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc2PWMSlider.setPopupDisplayEnabled (true, false, this);
+    addAndMakeVisible (&osc2PWMSlider);
+
+    osc2PWMAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc2pwm", osc2PWMSlider));
+
+    osc2RangeSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc2RangeSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc2RangeSlider.setPopupDisplayEnabled (true, false, this);
+    addAndMakeVisible (&osc2RangeSlider);
+
+    osc2RangeAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc2range", osc2RangeSlider));
+
+    osc2WaveformSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
+    osc2WaveformSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
+    osc2WaveformSlider.setPopupDisplayEnabled (true, false, this);
+    addAndMakeVisible (&osc2WaveformSlider);
+
+    osc2WaveformAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc2waveform", osc2WaveformSlider));
+
+    setSize (1000, 400); // Adjust size as needed to fit all controls
 }
 
 MiniSynthesizerAudioProcessorEditor::~MiniSynthesizerAudioProcessorEditor()
@@ -80,23 +158,35 @@ void MiniSynthesizerAudioProcessorEditor::paint (juce::Graphics& g)
 
 void MiniSynthesizerAudioProcessorEditor::resized()
 {
-    auto area = getLocalBounds();
+    auto area = getLocalBounds().reduced(10);
     auto topPadding = 40;
-    area.removeFromTop(topPadding);
+    auto sliderWidth = area.getWidth() / 8; // Adjust as needed
+    
+    auto title = area.removeFromTop(area.getHeight() * 0.05);
 
-    auto sliderWidth = area.getWidth() / 2;
+    // Oscillator 1 Controls
+    auto osc1Area = area.removeFromTop(area.getHeight() / 2);
+    osc1TuningSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1AttackSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1DecaySlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1SustainSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1ReleaseSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
 
-    // Layout Oscillator 1 Controls
-    osc1Label.setBounds(area.removeFromTop(20));
-    osc1RangeComboBox.setBounds(area.removeFromTop(30));
-    osc1WaveformComboBox.setBounds(area.removeFromTop(30));
-    osc1TuningSlider.setBounds(area.removeFromTop(60));
-    osc1PWMSlider.setBounds(area.removeFromTop(60));
+    // New Oscillator 1 Controls
+    osc1PWMSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1RangeSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1WaveformSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
 
-    // Layout Oscillator 2 Controls
-    osc2Label.setBounds(area.removeFromTop(20));
-    osc2RangeComboBox.setBounds(area.removeFromTop(30));
-    osc2WaveformComboBox.setBounds(area.removeFromTop(30));
-    osc2TuningSlider.setBounds(area.removeFromTop(60));
-    osc2PWMSlider.setBounds(area.removeFromTop(60));
+    // Oscillator 2 Controls
+    auto osc2Area = area;
+    osc2TuningSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2AttackSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2DecaySlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2SustainSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2ReleaseSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+
+    // New Oscillator 2 Controls
+    osc2PWMSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2RangeSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2WaveformSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
 }

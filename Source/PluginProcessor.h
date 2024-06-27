@@ -53,7 +53,11 @@ public:
         OscillatorVoice(std::atomic<float>* osc1TuningParam, std::atomic<float>* osc2TuningParam,
                         std::atomic<float>* osc1RangeParam, std::atomic<float>* osc2RangeParam,
                         std::atomic<float>* osc1WaveformParam, std::atomic<float>* osc2WaveformParam,
-                        std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam);
+                        std::atomic<float>* osc1PWMParam, std::atomic<float>* osc2PWMParam,
+                        std::atomic<float>* osc1AttackParam, std::atomic<float>* osc1DecayParam,
+                        std::atomic<float>* osc1SustainParam, std::atomic<float>* osc1ReleaseParam,
+                        std::atomic<float>* osc2AttackParam, std::atomic<float>* osc2DecayParam,
+                        std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam);
         ~OscillatorVoice() override = default;
 
         bool canPlaySound(juce::SynthesiserSound* sound) override;
@@ -73,6 +77,14 @@ public:
         std::atomic<float>* osc2WaveformParameter;
         std::atomic<float>* osc1PWMParameter;
         std::atomic<float>* osc2PWMParameter;
+        std::atomic<float>* osc1AttackParameter;
+        std::atomic<float>* osc1DecayParameter;
+        std::atomic<float>* osc1SustainParameter;
+        std::atomic<float>* osc1ReleaseParameter;
+        std::atomic<float>* osc2AttackParameter;
+        std::atomic<float>* osc2DecayParameter;
+        std::atomic<float>* osc2SustainParameter;
+        std::atomic<float>* osc2ReleaseParameter;
 
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
@@ -80,12 +92,6 @@ public:
         double currentSampleRate = 44100.0;
         float level = 0.0f;
         float tailOff = 0.0f;
-
-        // Envelope parameters
-        float attackTime = 0.05f;  // Attack time in seconds
-        float decayTime = 0.1f;    // Decay time in seconds
-        float sustainLevel = 0.8f; // Sustain level (0.0 to 1.0)
-        float releaseTime = 0.5f;  // Release time in seconds
 
         bool isNoteOn = false;
 
@@ -110,6 +116,14 @@ private:
     std::atomic<float>* osc2WaveformParam = nullptr;
     std::atomic<float>* osc1PWMParam = nullptr;
     std::atomic<float>* osc2PWMParam = nullptr;
+    std::atomic<float>* osc1AttackParam = nullptr;
+    std::atomic<float>* osc1DecayParam = nullptr;
+    std::atomic<float>* osc1SustainParam = nullptr;
+    std::atomic<float>* osc1ReleaseParam = nullptr;
+    std::atomic<float>* osc2AttackParam = nullptr;
+    std::atomic<float>* osc2DecayParam = nullptr;
+    std::atomic<float>* osc2SustainParam = nullptr;
+    std::atomic<float>* osc2ReleaseParam = nullptr;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessor)
 };
