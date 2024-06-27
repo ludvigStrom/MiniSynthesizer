@@ -181,7 +181,8 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     // Sample Rate Reduction Slider
     sampleRateReductionSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     sampleRateReductionSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
-    sampleRateReductionSlider.setRange(1.0f, 200.0f, 1.0f);
+    sampleRateReductionSlider.setRange(200.0f, 20000.0f, 1.0f);
+    sampleRateReductionSlider.setTextValueSuffix(" Hz");
     addAndMakeVisible(&sampleRateReductionSlider);
     sampleRateReductionAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "sampleRateReduction", sampleRateReductionSlider));
 

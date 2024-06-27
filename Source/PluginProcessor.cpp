@@ -26,7 +26,7 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
                      std::make_unique<juce::AudioParameterFloat>("osc2release", "Oscillator 2 Release", 0.0f, 5.0f, 0.5f),
                      std::make_unique<juce::AudioParameterBool>("bitcrusherEnabled", "Enable Bitcrusher", false),
                      std::make_unique<juce::AudioParameterInt>("bitDepth", "Bit Depth", 2, 16, 16),
-                     std::make_unique<juce::AudioParameterFloat>("sampleRateReduction", "Sample Rate Reduction", 1.0f, 200.0f, 1.0f)
+                     std::make_unique<juce::AudioParameterFloat>("sampleRateReduction", "Sample Rate Reduction", 200.0f, 20000.0f, 20000.0f)
                  })
 {
     osc1TuningParam = parameters.getRawParameterValue("osc1tuning");
@@ -144,10 +144,10 @@ void MiniSynthesizerAudioProcessor::applyBitcrusher(juce::AudioBuffer<float>& bu
     if (*bitcrusherEnabledParam)
     {
         auto bitDepth = static_cast<int>(bitDepthParam->load());
-        auto sampleRateReduction = sampleRateReductionParam->load();
+        auto sampleRateReduction = static_cast<int>(sampleRateReductionParam->load());
 
         float bitScale = static_cast<float>(1 << (bitDepth - 1));
-        int sampleRateStep = static_cast<int>(sampleRateReduction);
+        int sampleRateStep = static_cast<int>(getSampleRate() / sampleRateReduction);
 
         for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
         {
@@ -156,7 +156,7 @@ void MiniSynthesizerAudioProcessor::applyBitcrusher(juce::AudioBuffer<float>& bu
 
             for (int sample = 0; sample < numSamples; ++sample)
             {
-                if (sample % sampleRateStep == 0)
+                if (sampleRateStep > 0 && sample % sampleRateStep == 0)
                 {
                     lastSample = std::round(channelData[sample] * bitScale) / bitScale;
                 }
@@ -165,7 +165,6 @@ void MiniSynthesizerAudioProcessor::applyBitcrusher(juce::AudioBuffer<float>& bu
         }
     }
 }
-
 
 void MiniSynthesizerAudioProcessor::releaseResources()
 {
