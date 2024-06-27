@@ -100,6 +100,7 @@ public:
         bool isNoteOn = false;
 
         void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType, std::atomic<float>* pwmParam);
+        double calculateFrequency(std::atomic<float>* tuningParam, std::atomic<float>* rangeParam);
     };
 
 private:

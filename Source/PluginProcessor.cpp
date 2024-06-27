@@ -290,7 +290,7 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::stopNote(float velocity, bo
         tailOff = 0.0f;
     }
     isNoteOn = false;
-    //DBG("Note stopped");
+    DBG("Note stopped");
 }
 
 void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
@@ -300,6 +300,16 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
     {
         float osc1Volume = osc1VolumeParameter ? osc1VolumeParameter->load() : 0.5f;
         float osc2Volume = osc2VolumeParameter ? osc2VolumeParameter->load() : 0.5f;
+
+        // Update the oscillator frequencies and waveforms in real-time
+        double osc1Frequency = calculateFrequency(osc1TuningParameter, osc1RangeParameter);
+        double osc2Frequency = calculateFrequency(osc2TuningParameter, osc2RangeParameter);
+
+        osc1.setFrequency(osc1Frequency);
+        osc2.setFrequency(osc2Frequency);
+
+        setOscillatorWaveform(osc1, static_cast<int>(osc1WaveformParameter->load()), osc1PWMParameter);
+        setOscillatorWaveform(osc2, static_cast<int>(osc2WaveformParameter->load()), osc2PWMParameter);
 
         for (int sample = 0; sample < numSamples; ++sample)
         {
@@ -319,22 +329,22 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
             if (isNoteOn)
             {
                 // Attack phase
-                if (level < 0.15f && tailOff == 0.0f)
+                if (level < 1.0f && tailOff == 0.0f)
                 {
-                    level += (0.15f / (osc1AttackParameter->load() * currentSampleRate));
-                    if (level > 0.15f)
-                        level = 0.15f;
+                    level += (1.0f / (osc1AttackParameter->load() * currentSampleRate));
+                    if (level > 1.0f)
+                        level = 1.0f;
                 }
                 // Sustain phase
-                else if (level > 0.15f)
+                else if (level > 1.0f)
                 {
-                    level = 0.15f * osc1SustainParameter->load();
+                    level = 1.0f * osc1SustainParameter->load();
                 }
             }
             else if (tailOff > 0.0f)
             {
                 // Release phase
-                level -= (0.15f * osc1SustainParameter->load() / (osc1ReleaseParameter->load() * currentSampleRate));
+                level -= (1.0f * osc1SustainParameter->load() / (osc1ReleaseParameter->load() * currentSampleRate));
                 if (level <= 0.0f)
                 {
                     clearCurrentNote();
@@ -347,6 +357,14 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
             }
         }
     }
+}
+
+double MiniSynthesizerAudioProcessor::OscillatorVoice::calculateFrequency(std::atomic<float>* tuningParam, std::atomic<float>* rangeParam)
+{
+    double baseFrequency = juce::MidiMessage::getMidiNoteInHertz(getCurrentlyPlayingNote());
+    int range = static_cast<int>(rangeParam->load());
+    double rangeMultiplier = std::pow(2.0, range - 2); // Adjust for ranges: 32, 16, 8, 4, 2
+    return baseFrequency * rangeMultiplier * std::pow(2.0, tuningParam->load() / 12.0);
 }
 
 void MiniSynthesizerAudioProcessor::OscillatorVoice::prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
