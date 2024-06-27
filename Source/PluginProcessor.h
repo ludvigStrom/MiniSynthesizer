@@ -39,6 +39,8 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
 
     juce::AudioProcessorValueTreeState parameters;
+    void applyBitcrusher(juce::AudioBuffer<float>& buffer, int numSamples);
+
 
     enum Waveform
     {
@@ -89,9 +91,14 @@ public:
         std::atomic<float>* osc2ReleaseParameter;
         std::atomic<float>* osc1VolumeParameter;
         std::atomic<float>* osc2VolumeParameter;
+        std::atomic<float>* bitcrusherEnabledParam = nullptr;
+        std::atomic<float>* bitDepthParam = nullptr;
+        std::atomic<float>* sampleRateReductionParam = nullptr;
 
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
+        
+        
 
         double currentSampleRate = 44100.0;
         float level = 0.0f;
@@ -129,8 +136,13 @@ private:
     std::atomic<float>* osc2DecayParam = nullptr;
     std::atomic<float>* osc2SustainParam = nullptr;
     std::atomic<float>* osc2ReleaseParam = nullptr;
-    std::atomic<float>* osc1VolumeParameter;
-    std::atomic<float>* osc2VolumeParameter;
+    std::atomic<float>* osc1VolumeParameter = nullptr;
+    std::atomic<float>* osc2VolumeParameter = nullptr;
+    std::atomic<float>* bitcrusherEnabledParam = nullptr;
+    std::atomic<float>* bitDepthParam = nullptr;
+    std::atomic<float>* sampleRateReductionParam = nullptr;
+    
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessor)
 };

@@ -165,6 +165,25 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     addAndMakeVisible (&osc2WaveformSlider);
 
     osc2WaveformAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc2waveform", osc2WaveformSlider));
+    
+    // Bitcrusher Toggle Button
+    bitcrusherToggle.setButtonText("Enable Bitcrusher");
+    addAndMakeVisible(&bitcrusherToggle);
+    bitcrusherToggleAttachment.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(valueTreeState, "bitcrusherEnabled", bitcrusherToggle));
+    
+    // Bit Depth Slider
+    bitDepthSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    bitDepthSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    bitDepthSlider.setRange(2, 16, 1);
+    addAndMakeVisible(&bitDepthSlider);
+    bitDepthAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "bitDepth", bitDepthSlider));
+
+    // Sample Rate Reduction Slider
+    sampleRateReductionSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    sampleRateReductionSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    sampleRateReductionSlider.setRange(1.0f, 200.0f, 1.0f);
+    addAndMakeVisible(&sampleRateReductionSlider);
+    sampleRateReductionAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "sampleRateReduction", sampleRateReductionSlider));
 
     setSize (1000, 400); // Adjust size as needed to fit all controls
 }
@@ -185,10 +204,17 @@ void MiniSynthesizerAudioProcessorEditor::paint (juce::Graphics& g)
 void MiniSynthesizerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced(10);
-    auto sliderWidth = area.getWidth() / 9; // Adjust as needed
+    auto sliderWidth = area.getWidth() / 12; // Adjust as needed
     
     auto title = area.removeFromTop(area.getHeight() * 0.05);
 
+    // Bitcrusher controlls
+    auto bitcrusherArea = area.removeFromRight(250);
+    auto bitcrusherSliderWidth = bitcrusherArea.getWidth() / 3; // Adjust as needed
+    bitcrusherToggle.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
+    bitDepthSlider.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
+    sampleRateReductionSlider.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
+    
     // Oscillator 1 Controls
     auto osc1Area = area.removeFromTop(area.getHeight() / 2);
     osc1TuningSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));

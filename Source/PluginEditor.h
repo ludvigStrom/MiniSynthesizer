@@ -77,6 +77,14 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2PWMAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2RangeAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2WaveformAttachment;
+    
+    juce::ToggleButton bitcrusherToggle;
+    juce::Slider bitDepthSlider;
+    juce::Slider sampleRateReductionSlider;
+
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> bitcrusherToggleAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitDepthAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sampleRateReductionAttachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessorEditor)
 };

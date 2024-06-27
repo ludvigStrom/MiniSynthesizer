@@ -23,7 +23,10 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
                      std::make_unique<juce::AudioParameterFloat>("osc2attack", "Oscillator 2 Attack", 0.0f, 5.0f, 0.1f),
                      std::make_unique<juce::AudioParameterFloat>("osc2decay", "Oscillator 2 Decay", 0.0f, 5.0f, 0.1f),
                      std::make_unique<juce::AudioParameterFloat>("osc2sustain", "Oscillator 2 Sustain", 0.0f, 1.0f, 0.8f),
-                     std::make_unique<juce::AudioParameterFloat>("osc2release", "Oscillator 2 Release", 0.0f, 5.0f, 0.5f)
+                     std::make_unique<juce::AudioParameterFloat>("osc2release", "Oscillator 2 Release", 0.0f, 5.0f, 0.5f),
+                     std::make_unique<juce::AudioParameterBool>("bitcrusherEnabled", "Enable Bitcrusher", false),
+                     std::make_unique<juce::AudioParameterInt>("bitDepth", "Bit Depth", 2, 16, 16),
+                     std::make_unique<juce::AudioParameterFloat>("sampleRateReduction", "Sample Rate Reduction", 1.0f, 200.0f, 1.0f)
                  })
 {
     osc1TuningParam = parameters.getRawParameterValue("osc1tuning");
@@ -44,6 +47,9 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     osc2DecayParam = parameters.getRawParameterValue("osc2decay");
     osc2SustainParam = parameters.getRawParameterValue("osc2sustain");
     osc2ReleaseParam = parameters.getRawParameterValue("osc2release");
+    bitcrusherEnabledParam = parameters.getRawParameterValue("bitcrusherEnabled");
+    bitDepthParam = parameters.getRawParameterValue("bitDepth");
+    sampleRateReductionParam = parameters.getRawParameterValue("sampleRateReduction");
 
     if (osc1TuningParam == nullptr || osc2TuningParam == nullptr ||
         osc1RangeParam == nullptr || osc2RangeParam == nullptr ||
@@ -133,6 +139,34 @@ void MiniSynthesizerAudioProcessor::prepareToPlay(double sampleRate, int samples
     }
 }
 
+void MiniSynthesizerAudioProcessor::applyBitcrusher(juce::AudioBuffer<float>& buffer, int numSamples)
+{
+    if (*bitcrusherEnabledParam)
+    {
+        auto bitDepth = static_cast<int>(bitDepthParam->load());
+        auto sampleRateReduction = sampleRateReductionParam->load();
+
+        float bitScale = static_cast<float>(1 << (bitDepth - 1));
+        int sampleRateStep = static_cast<int>(sampleRateReduction);
+
+        for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+        {
+            float* channelData = buffer.getWritePointer(channel);
+            float lastSample = 0.0f;
+
+            for (int sample = 0; sample < numSamples; ++sample)
+            {
+                if (sample % sampleRateStep == 0)
+                {
+                    lastSample = std::round(channelData[sample] * bitScale) / bitScale;
+                }
+                channelData[sample] = lastSample;
+            }
+        }
+    }
+}
+
+
 void MiniSynthesizerAudioProcessor::releaseResources()
 {
     DBG("Releasing resources");
@@ -168,9 +202,9 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
-    // DBG("Processing block: " << buffer.getNumSamples() << " samples");
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
-    // DBG("Block processed");
+
+    applyBitcrusher(buffer, buffer.getNumSamples());
 }
 
 bool MiniSynthesizerAudioProcessor::hasEditor() const
