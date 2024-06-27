@@ -43,7 +43,7 @@ public:
     enum Waveform
     {
         Sine = 0,
-        Triangle,
+        Saw,
         Pulse
     };
 
@@ -57,7 +57,9 @@ public:
                         std::atomic<float>* osc1AttackParam, std::atomic<float>* osc1DecayParam,
                         std::atomic<float>* osc1SustainParam, std::atomic<float>* osc1ReleaseParam,
                         std::atomic<float>* osc2AttackParam, std::atomic<float>* osc2DecayParam,
-                        std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam);
+                        std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam,
+                        std::atomic<float>* osc1VolumeParam, std::atomic<float>* osc2VolumeParam);
+        
         ~OscillatorVoice() override = default;
 
         bool canPlaySound(juce::SynthesiserSound* sound) override;
@@ -85,6 +87,8 @@ public:
         std::atomic<float>* osc2DecayParameter;
         std::atomic<float>* osc2SustainParameter;
         std::atomic<float>* osc2ReleaseParameter;
+        std::atomic<float>* osc1VolumeParameter;
+        std::atomic<float>* osc2VolumeParameter;
 
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
@@ -95,7 +99,7 @@ public:
 
         bool isNoteOn = false;
 
-        void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType);
+        void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType, std::atomic<float>* pwmParam);
     };
 
 private:
@@ -124,6 +128,8 @@ private:
     std::atomic<float>* osc2DecayParam = nullptr;
     std::atomic<float>* osc2SustainParam = nullptr;
     std::atomic<float>* osc2ReleaseParam = nullptr;
+    std::atomic<float>* osc1VolumeParameter;
+    std::atomic<float>* osc2VolumeParameter;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessor)
 };

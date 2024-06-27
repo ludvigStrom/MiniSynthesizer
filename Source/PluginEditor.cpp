@@ -29,6 +29,22 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     osc2Label.setText ("Oscillator 2 Tuning", juce::dontSendNotification);
     osc2Label.attachToComponent (&osc2TuningSlider, false);
     addAndMakeVisible (&osc2Label);
+    
+    // Oscillator 1 Volume Slider
+    osc1VolumeSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc1VolumeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    osc1VolumeSlider.setSkewFactorFromMidPoint(0.5f); // Exponential response
+    addAndMakeVisible(&osc1VolumeSlider);
+
+    osc1VolumeAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc1volume", osc1VolumeSlider));
+
+    // Oscillator 2 Volume Slider
+    osc2VolumeSlider.setSliderStyle(juce::Slider::LinearVertical);
+    osc2VolumeSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    osc2VolumeSlider.setSkewFactorFromMidPoint(0.5f); // Exponential response
+    addAndMakeVisible(&osc2VolumeSlider);
+
+    osc2VolumeAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "osc2volume", osc2VolumeSlider));
 
     // Oscillator 1 ADSR Sliders
     osc1AttackSlider.setSliderStyle(juce::Slider::LinearVertical);
@@ -100,6 +116,8 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     osc1PWMSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     osc1PWMSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
     osc1PWMSlider.setPopupDisplayEnabled (true, false, this);
+    osc1PWMLabel.setText ("PWM", juce::dontSendNotification);
+    osc1PWMLabel.attachToComponent(&osc1PWMSlider, false);
     addAndMakeVisible (&osc1PWMSlider);
 
     osc1PWMAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1pwm", osc1PWMSlider));
@@ -107,6 +125,10 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     osc1RangeSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     osc1RangeSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
     osc1RangeSlider.setPopupDisplayEnabled (true, false, this);
+    
+    osc1RangeLabel.setText ("Range", juce::dontSendNotification);
+    osc1RangeLabel.attachToComponent(&osc1RangeSlider, false);
+    
     addAndMakeVisible (&osc1RangeSlider);
 
     osc1RangeAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1range", osc1RangeSlider));
@@ -114,6 +136,10 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     osc1WaveformSlider.setSliderStyle (juce::Slider::RotaryHorizontalVerticalDrag);
     osc1WaveformSlider.setTextBoxStyle (juce::Slider::NoTextBox, false, 50, 20);
     osc1WaveformSlider.setPopupDisplayEnabled (true, false, this);
+    
+    osc1WaveformLabel.setText ("Waveform", juce::dontSendNotification);
+    osc1WaveformLabel.attachToComponent(&osc1WaveformSlider, false);
+    
     addAndMakeVisible (&osc1WaveformSlider);
 
     osc1WaveformAttachment.reset (new juce::AudioProcessorValueTreeState::SliderAttachment (valueTreeState, "osc1waveform", osc1WaveformSlider));
@@ -159,8 +185,7 @@ void MiniSynthesizerAudioProcessorEditor::paint (juce::Graphics& g)
 void MiniSynthesizerAudioProcessorEditor::resized()
 {
     auto area = getLocalBounds().reduced(10);
-    auto topPadding = 40;
-    auto sliderWidth = area.getWidth() / 8; // Adjust as needed
+    auto sliderWidth = area.getWidth() / 9; // Adjust as needed
     
     auto title = area.removeFromTop(area.getHeight() * 0.05);
 
@@ -171,11 +196,10 @@ void MiniSynthesizerAudioProcessorEditor::resized()
     osc1DecaySlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
     osc1SustainSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
     osc1ReleaseSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
-
-    // New Oscillator 1 Controls
     osc1PWMSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
     osc1RangeSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
     osc1WaveformSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
+    osc1VolumeSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));
 
     // Oscillator 2 Controls
     auto osc2Area = area;
@@ -184,9 +208,8 @@ void MiniSynthesizerAudioProcessorEditor::resized()
     osc2DecaySlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
     osc2SustainSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
     osc2ReleaseSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
-
-    // New Oscillator 2 Controls
     osc2PWMSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
     osc2RangeSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
     osc2WaveformSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
+    osc2VolumeSlider.setBounds(osc2Area.removeFromLeft(sliderWidth).reduced(10));
 }

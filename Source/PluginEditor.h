@@ -38,7 +38,20 @@ private:
     juce::Label osc2DecayLabel;
     juce::Label osc2SustainLabel;
     juce::Label osc2ReleaseLabel;
+    
+    juce::Label osc1PWMLabel;
+    juce::Label osc1RangeLabel;
+    juce::Label osc1WaveformLabel;
 
+    juce::Label osc2PWMLabel;
+    juce::Label osc2RangeLabel;
+    juce::Label osc2WaveformLabel;
+    
+    juce::Slider osc1VolumeSlider;
+    juce::Slider osc2VolumeSlider;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc1VolumeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2VolumeAttachment;
+    
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc1TuningAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2TuningAttachment;
 
