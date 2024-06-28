@@ -75,7 +75,13 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     synth.clearSounds();
 
     synth.addSound(new SineWaveSound());
-    synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam, osc1VolumeParameter, osc2VolumeParameter, formantFrequency1Param, formantFrequency2Param, formantFrequency3Param));
+    
+    for (int i = 0; i < 8; ++i)
+        {
+            synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam, osc1VolumeParameter, osc2VolumeParameter, formantFrequency1Param, formantFrequency2Param, formantFrequency3Param));
+        }
+    
+    // synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam, osc1VolumeParameter, osc2VolumeParameter, formantFrequency1Param, formantFrequency2Param, formantFrequency3Param));
 
 
     // DBG("MiniSynthesizerAudioProcessor constructor completed");
@@ -315,31 +321,28 @@ bool MiniSynthesizerAudioProcessor::OscillatorVoice::canPlaySound(juce::Synthesi
 void MiniSynthesizerAudioProcessor::OscillatorVoice::startNote(int midiNoteNumber, float velocity,
                                                                juce::SynthesiserSound*, int /*currentPitchWheelPosition*/)
 {
-    level = 0.0f;
-    tailOff = 0.0f;
+    noteNumber = midiNoteNumber;
+    adsrPhase = 0.0f;
     isNoteOn = true;
 
-    double baseFrequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-
-    // Calculate the frequency with the range parameter
-    auto calculateFrequency = [baseFrequency](std::atomic<float>* tuningParam, std::atomic<float>* rangeParam) {
-        int range = static_cast<int>(rangeParam->load());
-        double rangeMultiplier = std::pow(2.0, range - 2); // Adjust for ranges: 32, 16, 8, 4, 2
-        return baseFrequency * rangeMultiplier * std::pow(2.0, tuningParam->load() / 12.0);
-    };
-
-    double osc1Frequency = calculateFrequency(osc1TuningParameter, osc1RangeParameter);
-    double osc2Frequency = calculateFrequency(osc2TuningParameter, osc2RangeParameter);
-
-    osc1.setFrequency(osc1Frequency);
-    osc2.setFrequency(osc2Frequency);
+    // Update the frequencies based on the new MIDI note number
+    updateFrequencies();
 
     setOscillatorWaveform(osc1, static_cast<int>(osc1WaveformParameter->load()), osc1PWMParameter);
     setOscillatorWaveform(osc2, static_cast<int>(osc2WaveformParameter->load()), osc2PWMParameter);
 
     DBG("Note started: " << midiNoteNumber << " with velocity " << velocity);
-    DBG("Oscillator 1 Frequency: " << osc1Frequency);
-    DBG("Oscillator 2 Frequency: " << osc2Frequency);
+    DBG("Oscillator 1 Frequency: " << osc1.getFrequency());
+    DBG("Oscillator 2 Frequency: " << osc2.getFrequency());
+}
+
+void MiniSynthesizerAudioProcessor::OscillatorVoice::updateFrequencies()
+{
+    double osc1Frequency = calculateFrequency(osc1TuningParameter, osc1RangeParameter);
+    double osc2Frequency = calculateFrequency(osc2TuningParameter, osc2RangeParameter);
+
+    osc1.setFrequency(osc1Frequency);
+    osc2.setFrequency(osc2Frequency);
 }
 
 void MiniSynthesizerAudioProcessor::OscillatorVoice::stopNote(float velocity, bool allowTailOff)
@@ -359,11 +362,8 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
         float osc1Volume = juce::jlimit(0.0f, 1.0f, osc1VolumeParameter ? osc1VolumeParameter->load() : 0.5f);
         float osc2Volume = juce::jlimit(0.0f, 1.0f, osc2VolumeParameter ? osc2VolumeParameter->load() : 0.5f);
 
-        double osc1Frequency = calculateFrequency(osc1TuningParameter, osc1RangeParameter);
-        double osc2Frequency = calculateFrequency(osc2TuningParameter, osc2RangeParameter);
-
-        osc1.setFrequency(osc1Frequency);
-        osc2.setFrequency(osc2Frequency);
+        // Update frequencies if needed (e.g., for real-time modulation)
+        updateFrequencies();
 
         setOscillatorWaveform(osc1, static_cast<int>(osc1WaveformParameter->load()), osc1PWMParameter);
         setOscillatorWaveform(osc2, static_cast<int>(osc2WaveformParameter->load()), osc2PWMParameter);

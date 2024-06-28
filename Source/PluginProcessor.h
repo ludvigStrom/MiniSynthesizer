@@ -109,6 +109,10 @@ public:
         void updateADSRState();
         float adsrPhase = 0.0f;
         
+        void updateFrequencies();
+
+        
+        int noteNumber = -1;
         float currentSampleRate = 44100.0f;
         float level = 0.0f;
         float tailOff = 0.0f;
