@@ -209,9 +209,33 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
+    // Process the synth voices
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
+    // Apply bitcrusher
     applyBitcrusher(buffer, buffer.getNumSamples());
+
+    // Apply formant filter
+    if (buffer.getNumChannels() > 0 && buffer.getNumSamples() > 0)
+    {
+        // Helper function to clamp values
+        auto clamp = [](float value, float min, float max) {
+            return std::min(std::max(value, min), max);
+        };
+
+        float f1 = clamp(formantFrequency1Param->load(), 50.0f, 5000.0f);
+        float f2 = clamp(formantFrequency2Param->load(), 50.0f, 5000.0f);
+        float f3 = clamp(formantFrequency3Param->load(), 50.0f, 5000.0f);
+        
+        for (int i = 0; i < synth.getNumVoices(); ++i)
+        {
+            if (auto* voice = dynamic_cast<OscillatorVoice*>(synth.getVoice(i)))
+            {
+                voice->formantFilter.setFormantFrequencies(f1, f2, f3);
+                voice->formantFilter.processBlock(buffer);
+            }
+        }
+    }
 }
 
 bool MiniSynthesizerAudioProcessor::hasEditor() const
@@ -372,6 +396,7 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
                 tempBuffer.addSample(channel, sample, currentSample * level);
             }
 
+            // ADSR envelope processing
             if (isNoteOn)
             {
                 // Attack phase
@@ -403,24 +428,10 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
             }
         }
 
-        // Apply formant filter
-        if (tempBuffer.getNumChannels() > 0 && numSamples > 0)
+        // We'll apply the bitcrusher and formant filter in the main processBlock function
+        for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
-            float f1 = juce::jlimit(50.0f, 5000.0f, formantFrequency1Parameter->load());
-            float f2 = juce::jlimit(50.0f, 5000.0f, formantFrequency2Parameter->load());
-            float f3 = juce::jlimit(50.0f, 5000.0f, formantFrequency3Parameter->load());
-            
-            formantFilter.setFormantFrequencies(f1, f2, f3);
-            formantFilter.processBlock(tempBuffer);
-            
-            for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
-            {
-                outputBuffer.addFrom(channel, startSample, tempBuffer, channel, 0, numSamples);
-            }
-        }
-        else
-        {
-            DBG("Invalid buffer dimensions in renderNextBlock");
+            outputBuffer.addFrom(channel, startSample, tempBuffer, channel, 0, numSamples);
         }
     }
 }
