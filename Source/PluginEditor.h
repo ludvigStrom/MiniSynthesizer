@@ -85,6 +85,15 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> bitcrusherToggleAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> bitDepthAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sampleRateReductionAttachment;
+    
+    juce::Slider formantFrequency1Slider;
+    juce::Slider formantFrequency2Slider;
+    juce::Slider formantFrequency3Slider;
+    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantFrequency1Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantFrequency2Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantFrequency3Attachment;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessorEditor)
 };

@@ -185,6 +185,23 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     sampleRateReductionSlider.setTextValueSuffix(" Hz");
     addAndMakeVisible(&sampleRateReductionSlider);
     sampleRateReductionAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "sampleRateReduction", sampleRateReductionSlider));
+    
+    // Formant Frequency Sliders
+    formantFrequency1Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    formantFrequency1Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&formantFrequency1Slider);
+    formantFrequency1Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantFrequency1", formantFrequency1Slider));
+
+    formantFrequency2Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    formantFrequency2Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&formantFrequency2Slider);
+    formantFrequency2Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantFrequency2", formantFrequency2Slider));
+
+    formantFrequency3Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    formantFrequency3Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 50, 20);
+    addAndMakeVisible(&formantFrequency3Slider);
+    formantFrequency3Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantFrequency3", formantFrequency3Slider));
+
 
     setSize (1000, 400); // Adjust size as needed to fit all controls
 }
@@ -210,11 +227,21 @@ void MiniSynthesizerAudioProcessorEditor::resized()
     auto title = area.removeFromTop(area.getHeight() * 0.05);
 
     // Bitcrusher controlls
-    auto bitcrusherArea = area.removeFromRight(250);
-    auto bitcrusherSliderWidth = bitcrusherArea.getWidth() / 3; // Adjust as needed
+    auto fxArea = area.removeFromRight(250);
+    
+    auto bitcrusherArea = fxArea.removeFromTop(fxArea.getHeight()/2);
+    auto bitcrusherSliderWidth = bitcrusherArea.getWidth() / 3;
     bitcrusherToggle.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
     bitDepthSlider.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
     sampleRateReductionSlider.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
+    
+    // Formant Filter controls
+    auto formantArea = fxArea;
+    auto formantSliderWidth = formantArea.getWidth() / 3;
+    formantFrequency1Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
+    formantFrequency2Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
+    formantFrequency3Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
+
     
     // Oscillator 1 Controls
     auto osc1Area = area.removeFromTop(area.getHeight() / 2);

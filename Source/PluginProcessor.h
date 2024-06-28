@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include <cmath>
 #include <stdexcept>
+#include "FormantFilter.h"
 
 class MiniSynthesizerAudioProcessor : public juce::AudioProcessor
 {
@@ -60,7 +61,8 @@ public:
                         std::atomic<float>* osc1SustainParam, std::atomic<float>* osc1ReleaseParam,
                         std::atomic<float>* osc2AttackParam, std::atomic<float>* osc2DecayParam,
                         std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam,
-                        std::atomic<float>* osc1VolumeParam, std::atomic<float>* osc2VolumeParam);
+                        std::atomic<float>* osc1VolumeParam, std::atomic<float>* osc2VolumeParam,
+                        std::atomic<float>* formantFrequency1Param, std::atomic<float>* formantFrequency2Param, std::atomic<float>* formantFrequency3Param);
         
         ~OscillatorVoice() override = default;
 
@@ -71,6 +73,7 @@ public:
         void controllerMoved(int, int) override {}
         void renderNextBlock(juce::AudioBuffer<float>&, int startSample, int numSamples) override;
         void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels);
+        FormantFilter formantFilter;
 
     private:
         std::atomic<float>* osc1TuningParameter;
@@ -94,12 +97,13 @@ public:
         std::atomic<float>* bitcrusherEnabledParam = nullptr;
         std::atomic<float>* bitDepthParam = nullptr;
         std::atomic<float>* sampleRateReductionParam = nullptr;
+        std::atomic<float>* formantFrequency1Parameter;
+        std::atomic<float>* formantFrequency2Parameter;
+        std::atomic<float>* formantFrequency3Parameter;
 
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
         
-        
-
         double currentSampleRate = 44100.0;
         float level = 0.0f;
         float tailOff = 0.0f;
@@ -141,7 +145,9 @@ private:
     std::atomic<float>* bitcrusherEnabledParam = nullptr;
     std::atomic<float>* bitDepthParam = nullptr;
     std::atomic<float>* sampleRateReductionParam = nullptr;
-    
+    std::atomic<float>* formantFrequency1Param = nullptr;
+    std::atomic<float>* formantFrequency2Param = nullptr;
+    std::atomic<float>* formantFrequency3Param = nullptr;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessor)
