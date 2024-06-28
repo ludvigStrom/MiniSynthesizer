@@ -104,7 +104,12 @@ public:
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
         
-        double currentSampleRate = 44100.0;
+        float getADSRValue(std::atomic<float>* attackParam, std::atomic<float>* decayParam,
+                               std::atomic<float>* sustainParam, std::atomic<float>* releaseParam);
+        void updateADSRState();
+        float adsrPhase = 0.0f;
+        
+        float currentSampleRate = 44100.0f;
         float level = 0.0f;
         float tailOff = 0.0f;
 

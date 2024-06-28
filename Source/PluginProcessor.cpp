@@ -342,35 +342,23 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::startNote(int midiNoteNumbe
     DBG("Oscillator 2 Frequency: " << osc2Frequency);
 }
 
-
 void MiniSynthesizerAudioProcessor::OscillatorVoice::stopNote(float velocity, bool allowTailOff)
 {
-    if (allowTailOff)
-    {
-        if (tailOff == 0.0f)
-            tailOff = 1.0f;
-    }
-    else
+    isNoteOn = false;
+    if (!allowTailOff)
     {
         clearCurrentNote();
-        osc1.reset();
-        osc2.reset();
-        level = 0.0f;
-        tailOff = 0.0f;
+        adsrPhase = 0.0f;
     }
-    isNoteOn = false;
-    DBG("Note stopped");
 }
 
-void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer,
-                                                                     int startSample, int numSamples)
+void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-    if (isNoteOn || tailOff > 0.0f)
+    if (isNoteOn || (!isNoteOn && adsrPhase > 0.0f))
     {
-        float osc1Volume = osc1VolumeParameter ? osc1VolumeParameter->load() : 0.5f;
-        float osc2Volume = osc2VolumeParameter ? osc2VolumeParameter->load() : 0.5f;
+        float osc1Volume = juce::jlimit(0.0f, 1.0f, osc1VolumeParameter ? osc1VolumeParameter->load() : 0.5f);
+        float osc2Volume = juce::jlimit(0.0f, 1.0f, osc2VolumeParameter ? osc2VolumeParameter->load() : 0.5f);
 
-        // Update the oscillator frequencies and waveforms in real-time
         double osc1Frequency = calculateFrequency(osc1TuningParameter, osc1RangeParameter);
         double osc2Frequency = calculateFrequency(osc2TuningParameter, osc2RangeParameter);
 
@@ -388,50 +376,79 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
             float currentSample1 = osc1.processSample(0.0f) * osc1Volume;
             float currentSample2 = osc2.processSample(0.0f) * osc2Volume;
 
-            // Mix the outputs of both oscillators
+            float adsr1Value = getADSRValue(osc1AttackParameter, osc1DecayParameter, osc1SustainParameter, osc1ReleaseParameter);
+            float adsr2Value = getADSRValue(osc2AttackParameter, osc2DecayParameter, osc2SustainParameter, osc2ReleaseParameter);
+
+            currentSample1 *= adsr1Value;
+            currentSample2 *= adsr2Value;
+
             float currentSample = (currentSample1 + currentSample2) * 0.5f;
+            currentSample = juce::jlimit(-1.0f, 1.0f, currentSample);
 
             for (int channel = 0; channel < tempBuffer.getNumChannels(); ++channel)
             {
-                tempBuffer.addSample(channel, sample, currentSample * level);
+                tempBuffer.addSample(channel, sample, currentSample);
             }
 
-            // ADSR envelope processing
-            if (isNoteOn)
+            updateADSRState();
+
+            if (!isNoteOn && adsrPhase == 0.0f)
             {
-                // Attack phase
-                if (level < 1.0f && tailOff == 0.0f)
-                {
-                    level += (1.0f / (osc1AttackParameter->load() * currentSampleRate));
-                    if (level > 1.0f)
-                        level = 1.0f;
-                }
-                // Sustain phase
-                else if (level > 1.0f)
-                {
-                    level = 1.0f * osc1SustainParameter->load();
-                }
-            }
-            else if (tailOff > 0.0f)
-            {
-                // Release phase
-                level -= (1.0f * osc1SustainParameter->load() / (osc1ReleaseParameter->load() * currentSampleRate));
-                if (level <= 0.0f)
-                {
-                    clearCurrentNote();
-                    osc1.reset();
-                    osc2.reset();
-                    level = 0.0f;
-                    tailOff = 0.0f;
-                    break;
-                }
+                break;
             }
         }
 
-        // We'll apply the bitcrusher and formant filter in the main processBlock function
+        formantFilter.setFormantFrequencies(formantFrequency1Parameter->load(),
+                                            formantFrequency2Parameter->load(),
+                                            formantFrequency3Parameter->load());
+        formantFilter.processBlock(tempBuffer);
+
         for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
             outputBuffer.addFrom(channel, startSample, tempBuffer, channel, 0, numSamples);
+        }
+    }
+}
+
+float MiniSynthesizerAudioProcessor::OscillatorVoice::getADSRValue(std::atomic<float>* attackParam, std::atomic<float>* decayParam,
+                                    std::atomic<float>* sustainParam, std::atomic<float>* releaseParam)
+{
+    float attackTime = juce::jlimit(0.001f, 5.0f, attackParam->load());
+    float decayTime = juce::jlimit(0.001f, 5.0f, decayParam->load());
+    float sustainLevel = juce::jlimit(0.0f, 1.0f, sustainParam->load());
+    float releaseTime = juce::jlimit(0.001f, 5.0f, releaseParam->load());
+
+    if (adsrPhase < attackTime)
+    {
+        return adsrPhase / attackTime;
+    }
+    else if (adsrPhase < attackTime + decayTime)
+    {
+        float decayPhase = adsrPhase - attackTime;
+        return 1.0f - (1.0f - sustainLevel) * (decayPhase / decayTime);
+    }
+    else if (isNoteOn)
+    {
+        return sustainLevel;
+    }
+    else
+    {
+        float releasePhase = adsrPhase - (attackTime + decayTime);
+        return sustainLevel * (1.0f - releasePhase / releaseTime);
+    }
+}
+
+void MiniSynthesizerAudioProcessor::OscillatorVoice::updateADSRState()
+{
+    adsrPhase += 1.0f / currentSampleRate;
+    
+    if (!isNoteOn)
+    {
+        float releaseTime = juce::jlimit(0.001f, 5.0f, std::max(osc1ReleaseParameter->load(), osc2ReleaseParameter->load()));
+        if (adsrPhase > releaseTime)
+        {
+            clearCurrentNote();
+            adsrPhase = 0.0f;
         }
     }
 }
