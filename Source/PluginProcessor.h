@@ -4,6 +4,7 @@
 #include <cmath>
 #include <stdexcept>
 #include "FormantFilter.h"
+#include "ADSR.h"
 
 class MiniSynthesizerAudioProcessor : public juce::AudioProcessor
 {
@@ -104,20 +105,19 @@ public:
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
         
-        float getADSRValue(std::atomic<float>* attackParam, std::atomic<float>* decayParam,
-                               std::atomic<float>* sustainParam, std::atomic<float>* releaseParam);
-        void updateADSRState();
-        float adsrPhase = 0.0f;
-        
+        ADSR osc1ADSR;
+        ADSR osc2ADSR;
+                
         void updateFrequencies();
 
-        
         int noteNumber = -1;
         float currentSampleRate = 44100.0f;
         float level = 0.0f;
         float tailOff = 0.0f;
 
         bool isNoteOn = false;
+        
+        
 
         void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType, std::atomic<float>* pwmParam);
         double calculateFrequency(std::atomic<float>* tuningParam, std::atomic<float>* rangeParam);

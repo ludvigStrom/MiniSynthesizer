@@ -322,8 +322,14 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::startNote(int midiNoteNumbe
                                                                juce::SynthesiserSound*, int /*currentPitchWheelPosition*/)
 {
     noteNumber = midiNoteNumber;
-    adsrPhase = 0.0f;
     isNoteOn = true;
+    
+    // Set ADSR parameters
+    osc1ADSR.setParameters(osc1AttackParameter->load(), osc1DecayParameter->load(), osc1SustainParameter->load(), osc1ReleaseParameter->load());
+    osc2ADSR.setParameters(osc2AttackParameter->load(), osc2DecayParameter->load(), osc2SustainParameter->load(), osc2ReleaseParameter->load());
+    
+    osc1ADSR.noteOn();
+    osc2ADSR.noteOn();
 
     // Update the frequencies based on the new MIDI note number
     updateFrequencies();
@@ -351,13 +357,17 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::stopNote(float velocity, bo
     if (!allowTailOff)
     {
         clearCurrentNote();
-        adsrPhase = 0.0f;
+    }
+    else
+    {
+        osc1ADSR.noteOff();
+        osc2ADSR.noteOff();
     }
 }
 
 void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
 {
-    if (isNoteOn || (!isNoteOn && adsrPhase > 0.0f))
+    if (isNoteOn || osc1ADSR.isActive() || osc2ADSR.isActive())
     {
         float osc1Volume = juce::jlimit(0.0f, 1.0f, osc1VolumeParameter ? osc1VolumeParameter->load() : 0.5f);
         float osc2Volume = juce::jlimit(0.0f, 1.0f, osc2VolumeParameter ? osc2VolumeParameter->load() : 0.5f);
@@ -373,14 +383,8 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
 
         for (int sample = 0; sample < numSamples; ++sample)
         {
-            float currentSample1 = osc1.processSample(0.0f) * osc1Volume;
-            float currentSample2 = osc2.processSample(0.0f) * osc2Volume;
-
-            float adsr1Value = getADSRValue(osc1AttackParameter, osc1DecayParameter, osc1SustainParameter, osc1ReleaseParameter);
-            float adsr2Value = getADSRValue(osc2AttackParameter, osc2DecayParameter, osc2SustainParameter, osc2ReleaseParameter);
-
-            currentSample1 *= adsr1Value;
-            currentSample2 *= adsr2Value;
+            float currentSample1 = osc1.processSample(0.0f) * osc1Volume * osc1ADSR.getNextSample();
+            float currentSample2 = osc2.processSample(0.0f) * osc2Volume * osc2ADSR.getNextSample();
 
             float currentSample = (currentSample1 + currentSample2) * 0.5f;
             currentSample = juce::jlimit(-1.0f, 1.0f, currentSample);
@@ -390,9 +394,7 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
                 tempBuffer.addSample(channel, sample, currentSample);
             }
 
-            updateADSRState();
-
-            if (!isNoteOn && adsrPhase == 0.0f)
+            if (!isNoteOn && !osc1ADSR.isActive() && !osc2ADSR.isActive())
             {
                 break;
             }
@@ -406,49 +408,6 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
         for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
             outputBuffer.addFrom(channel, startSample, tempBuffer, channel, 0, numSamples);
-        }
-    }
-}
-
-float MiniSynthesizerAudioProcessor::OscillatorVoice::getADSRValue(std::atomic<float>* attackParam, std::atomic<float>* decayParam,
-                                    std::atomic<float>* sustainParam, std::atomic<float>* releaseParam)
-{
-    float attackTime = juce::jlimit(0.001f, 5.0f, attackParam->load());
-    float decayTime = juce::jlimit(0.001f, 5.0f, decayParam->load());
-    float sustainLevel = juce::jlimit(0.0f, 1.0f, sustainParam->load());
-    float releaseTime = juce::jlimit(0.001f, 5.0f, releaseParam->load());
-
-    if (adsrPhase < attackTime)
-    {
-        return adsrPhase / attackTime;
-    }
-    else if (adsrPhase < attackTime + decayTime)
-    {
-        float decayPhase = adsrPhase - attackTime;
-        return 1.0f - (1.0f - sustainLevel) * (decayPhase / decayTime);
-    }
-    else if (isNoteOn)
-    {
-        return sustainLevel;
-    }
-    else
-    {
-        float releasePhase = adsrPhase - (attackTime + decayTime);
-        return sustainLevel * (1.0f - releasePhase / releaseTime);
-    }
-}
-
-void MiniSynthesizerAudioProcessor::OscillatorVoice::updateADSRState()
-{
-    adsrPhase += 1.0f / currentSampleRate;
-    
-    if (!isNoteOn)
-    {
-        float releaseTime = juce::jlimit(0.001f, 5.0f, std::max(osc1ReleaseParameter->load(), osc2ReleaseParameter->load()));
-        if (adsrPhase > releaseTime)
-        {
-            clearCurrentNote();
-            adsrPhase = 0.0f;
         }
     }
 }
