@@ -1,8 +1,7 @@
 #include "ADSR.h"
 #include <cmath> // Include for the exp function
 
-ADSR::ADSR() : currentStage(Stage::Idle), envelope(0.0f), sampleRate(44100.0),
-               attackRate(0.0f), decayRate(0.0f), sustainLevel(1.0f), releaseRate(0.0f)
+ADSR::ADSR() : currentStage(Stage::Idle), envelope(0.0f), sampleRate(44100.0), attackRate(0.0f), decayRate(0.0f), sustainLevel(1.0f), releaseRate(0.0f)
 {
 }
 
@@ -52,6 +51,7 @@ float ADSR::getNextSample()
 void ADSR::noteOn()
 {
     currentStage = Stage::Attack;
+    envelope = 0.0f;
 }
 
 void ADSR::noteOff()

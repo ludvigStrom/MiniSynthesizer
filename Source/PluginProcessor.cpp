@@ -212,6 +212,7 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+    // Clear any unused output channels
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
 
@@ -220,28 +221,8 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
 
     // Apply bitcrusher
     applyBitcrusher(buffer, buffer.getNumSamples());
-
-    // Apply formant filter
-    if (buffer.getNumChannels() > 0 && buffer.getNumSamples() > 0)
-    {
-        // Helper function to clamp values
-        auto clamp = [](float value, float min, float max) {
-            return std::min(std::max(value, min), max);
-        };
-
-        float f1 = clamp(formantFrequency1Param->load(), 50.0f, 5000.0f);
-        float f2 = clamp(formantFrequency2Param->load(), 50.0f, 5000.0f);
-        float f3 = clamp(formantFrequency3Param->load(), 50.0f, 5000.0f);
-        
-        for (int i = 0; i < synth.getNumVoices(); ++i)
-        {
-            if (auto* voice = dynamic_cast<OscillatorVoice*>(synth.getVoice(i)))
-            {
-                voice->formantFilter.setFormantFrequencies(f1, f2, f3);
-                voice->formantFilter.processBlock(buffer);
-            }
-        }
-    }
+    
+    // You can add any global effects processing here if needed
 }
 
 bool MiniSynthesizerAudioProcessor::hasEditor() const
@@ -311,6 +292,7 @@ MiniSynthesizerAudioProcessor::OscillatorVoice::OscillatorVoice(
         DBG("OscillatorVoice constructor received null parameter");
     }
     DBG("OscillatorVoice constructor completed");
+        
 }
 
 bool MiniSynthesizerAudioProcessor::OscillatorVoice::canPlaySound(juce::SynthesiserSound* sound)
@@ -331,15 +313,11 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::startNote(int midiNoteNumbe
     osc1ADSR.noteOn();
     osc2ADSR.noteOn();
 
-    // Update the frequencies based on the new MIDI note number
-    updateFrequencies();
-
     setOscillatorWaveform(osc1, static_cast<int>(osc1WaveformParameter->load()), osc1PWMParameter);
     setOscillatorWaveform(osc2, static_cast<int>(osc2WaveformParameter->load()), osc2PWMParameter);
-
-    DBG("Note started: " << midiNoteNumber << " with velocity " << velocity);
-    DBG("Oscillator 1 Frequency: " << osc1.getFrequency());
-    DBG("Oscillator 2 Frequency: " << osc2.getFrequency());
+    
+    // Update the frequencies based on the new MIDI note number
+    updateFrequencies();
 }
 
 void MiniSynthesizerAudioProcessor::OscillatorVoice::updateFrequencies()
@@ -396,15 +374,22 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
 
             if (!isNoteOn && !osc1ADSR.isActive() && !osc2ADSR.isActive())
             {
+                clearCurrentNote();
                 break;
             }
         }
 
-        formantFilter.setFormantFrequencies(formantFrequency1Parameter->load(),
-                                            formantFrequency2Parameter->load(),
-                                            formantFrequency3Parameter->load());
+        // Update formant filter parameters
+        formantFilter.setFormantFrequencies(
+            formantFrequency1Parameter->load(),
+            formantFrequency2Parameter->load(),
+            formantFrequency3Parameter->load()
+        );
+        
+        // Apply formant filter to the temp buffer (individual voice output)
         formantFilter.processBlock(tempBuffer);
 
+        // Mix the processed voice output into the main output buffer
         for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
         {
             outputBuffer.addFrom(channel, startSample, tempBuffer, channel, 0, numSamples);
@@ -426,6 +411,9 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::prepareToPlay(double sample
     osc1.prepare({ sampleRate, static_cast<juce::uint32>(samplesPerBlock), static_cast<juce::uint32>(outputChannels) });
     osc2.prepare({ sampleRate, static_cast<juce::uint32>(samplesPerBlock), static_cast<juce::uint32>(outputChannels) });
     formantFilter.prepareToPlay(sampleRate, samplesPerBlock);
+    
+    osc1ADSR.setSampleRate(sampleRate);
+    osc2ADSR.setSampleRate(sampleRate);
 }
 
 void MiniSynthesizerAudioProcessor::OscillatorVoice::setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType, std::atomic<float>* pwmParam = nullptr)

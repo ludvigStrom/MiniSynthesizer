@@ -27,6 +27,13 @@ OscillatorVoice::OscillatorVoice(
 {
     osc1.setFrequency(440.0);  // Initialize to A4
     osc2.setFrequency(440.0);  // Initialize to A4
+    
+    adsr1.setSampleRate(44100.0); // Set a default sample rate
+    adsr2.setSampleRate(44100.0);
+        
+    // Initialize with default values
+    adsr1.setParameters(0.1f, 0.1f, 0.8f, 0.1f);
+    adsr2.setParameters(0.1f, 0.1f, 0.8f, 0.1f);
 
     if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr ||
         osc1RangeParameter == nullptr || osc2RangeParameter == nullptr ||
@@ -43,6 +50,8 @@ OscillatorVoice::OscillatorVoice(
         DBG("OscillatorVoice constructor received null parameter");
     }
     DBG("OscillatorVoice constructor completed");
+    
+    
 }
 
 bool OscillatorVoice::canPlaySound(juce::SynthesiserSound* sound)
