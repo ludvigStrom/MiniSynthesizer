@@ -202,7 +202,62 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     addAndMakeVisible(&formantFrequency3Slider);
     formantFrequency3Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantFrequency3", formantFrequency3Slider));
 
+    // Initialize new formant filter controls
+    addAndMakeVisible(formantQ1Slider);
+    formantQ1Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantQ1Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
+    formantQ1Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantQ1", formantQ1Slider));
 
+    addAndMakeVisible(formantQ2Slider);
+    formantQ2Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantQ2Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
+    formantQ2Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantQ2", formantQ2Slider));
+
+    addAndMakeVisible(formantQ3Slider);
+    formantQ3Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantQ3Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
+    formantQ3Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantQ3", formantQ3Slider));
+
+    addAndMakeVisible(formantGain1Slider);
+    formantGain1Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantGain1Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
+    formantGain1Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantGain1", formantGain1Slider));
+
+    addAndMakeVisible(formantGain2Slider);
+    formantGain2Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantGain2Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
+    formantGain2Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantGain2", formantGain2Slider));
+
+    addAndMakeVisible(formantGain3Slider);
+    formantGain3Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantGain3Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
+    formantGain3Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantGain3", formantGain3Slider));
+
+    // Add labels for the new sliders
+    addAndMakeVisible(formantQ1Label);
+    formantQ1Label.setText("Q1", juce::dontSendNotification);
+    formantQ1Label.attachToComponent(&formantQ1Slider, false);
+
+    addAndMakeVisible(formantQ2Label);
+    formantQ2Label.setText("Q2", juce::dontSendNotification);
+    formantQ2Label.attachToComponent(&formantQ2Slider, false);
+
+    addAndMakeVisible(formantQ3Label);
+    formantQ3Label.setText("Q3", juce::dontSendNotification);
+    formantQ3Label.attachToComponent(&formantQ3Slider, false);
+
+    addAndMakeVisible(formantGain1Label);
+    formantGain1Label.setText("Gain1", juce::dontSendNotification);
+    formantGain1Label.attachToComponent(&formantGain1Slider, false);
+
+    addAndMakeVisible(formantGain2Label);
+    formantGain2Label.setText("Gain2", juce::dontSendNotification);
+    formantGain2Label.attachToComponent(&formantGain2Slider, false);
+
+    addAndMakeVisible(formantGain3Label);
+    formantGain3Label.setText("Gain3", juce::dontSendNotification);
+    formantGain3Label.attachToComponent(&formantGain3Slider, false);
+    
     setSize (1000, 400); // Adjust size as needed to fit all controls
 }
 
@@ -229,7 +284,7 @@ void MiniSynthesizerAudioProcessorEditor::resized()
     // Bitcrusher controlls
     auto fxArea = area.removeFromRight(250);
     
-    auto bitcrusherArea = fxArea.removeFromTop(fxArea.getHeight()/2);
+    auto bitcrusherArea = fxArea.removeFromTop(fxArea.getHeight()/4);
     auto bitcrusherSliderWidth = bitcrusherArea.getWidth() / 3;
     bitcrusherToggle.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
     bitDepthSlider.setBounds(bitcrusherArea.removeFromLeft(bitcrusherSliderWidth).reduced(10));
@@ -237,12 +292,22 @@ void MiniSynthesizerAudioProcessorEditor::resized()
     
     // Formant Filter controls
     auto formantArea = fxArea;
-    auto formantSliderWidth = formantArea.getWidth() / 3;
-    formantFrequency1Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
-    formantFrequency2Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
-    formantFrequency3Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
-
     
+    auto formantFreqArea = formantArea.removeFromTop(fxArea.getHeight()/3);
+    auto formantSliderWidth = formantArea.getWidth() / 3;
+    formantFrequency1Slider.setBounds(formantFreqArea.removeFromLeft(sliderWidth).reduced(10));
+    formantFrequency2Slider.setBounds(formantFreqArea.removeFromLeft(sliderWidth).reduced(10));
+    formantFrequency3Slider.setBounds(formantFreqArea.removeFromLeft(sliderWidth).reduced(10));
+    
+    auto formantGainArea = formantArea.removeFromTop(fxArea.getHeight()/3);
+    formantGain1Slider.setBounds(formantGainArea.removeFromLeft(sliderWidth).reduced(10));
+    formantGain2Slider.setBounds(formantGainArea.removeFromLeft(sliderWidth).reduced(10));
+    formantGain3Slider.setBounds(formantGainArea.removeFromLeft(sliderWidth).reduced(10));
+    
+    formantQ1Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
+    formantQ2Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
+    formantQ3Slider.setBounds(formantArea.removeFromLeft(sliderWidth).reduced(10));
+
     // Oscillator 1 Controls
     auto osc1Area = area.removeFromTop(area.getHeight() / 2);
     osc1TuningSlider.setBounds(osc1Area.removeFromLeft(sliderWidth).reduced(10));

@@ -29,13 +29,21 @@ void FormantFilter::processBlock(juce::AudioBuffer<float>& buffer)
     }
 }
 
-void FormantFilter::setFormantFrequencies(float f1, float f2, float f3)
+void FormantFilter::setFormantParameters(float freq1, float freq2, float freq3,
+                                         float q1, float q2, float q3,
+                                         float gain1, float gain2, float gain3)
 {
-    frequency1 = f1;
-    frequency2 = f2;
-    frequency3 = f3;
+    this->frequency1 = freq1;
+    this->frequency2 = freq2;
+    this->frequency3 = freq3;
+    this->q1 = q1;
+    this->q2 = q2;
+    this->q3 = q3;
+    this->gain1 = gain1;
+    this->gain2 = gain2;
+    this->gain3 = gain3;
+
     reset();
-    //DBG("Formant frequencies set to: " << f1 << ", " << f2 << ", " << f3);
 }
 
 void FormantFilter::reset()

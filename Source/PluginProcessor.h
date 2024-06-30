@@ -65,7 +65,9 @@ public:
                         std::atomic<float>* osc2AttackParam, std::atomic<float>* osc2DecayParam,
                         std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam,
                         std::atomic<float>* osc1VolumeParam, std::atomic<float>* osc2VolumeParam,
-                        std::atomic<float>* formantFrequency1Param, std::atomic<float>* formantFrequency2Param, std::atomic<float>* formantFrequency3Param);
+                        std::atomic<float>* formantFrequency1Param, std::atomic<float>* formantFrequency2Param, std::atomic<float>* formantFrequency3Param,
+                        std::atomic<float>* formantQ1Param, std::atomic<float>* formantQ2Param, std::atomic<float>* formantQ3Param,
+                        std::atomic<float>* formantGain1Param, std::atomic<float>* formantGain2Param, std::atomic<float>* formantGain3Param);
         
         ~OscillatorVoice() override = default;
 
@@ -106,6 +108,12 @@ public:
         std::atomic<float>* formantFrequency1Parameter;
         std::atomic<float>* formantFrequency2Parameter;
         std::atomic<float>* formantFrequency3Parameter;
+        std::atomic<float>* formantQ1Parameter;
+        std::atomic<float>* formantQ2Parameter;
+        std::atomic<float>* formantQ3Parameter;
+        std::atomic<float>* formantGain1Parameter;
+        std::atomic<float>* formantGain2Parameter;
+        std::atomic<float>* formantGain3Parameter;
 
         juce::dsp::Oscillator<float> osc1;
         juce::dsp::Oscillator<float> osc2;
@@ -160,6 +168,12 @@ private:
     std::atomic<float>* formantFrequency1Param = nullptr;
     std::atomic<float>* formantFrequency2Param = nullptr;
     std::atomic<float>* formantFrequency3Param = nullptr;
+    std::atomic<float>* formantQ1Param = nullptr;
+    std::atomic<float>* formantQ2Param = nullptr;
+    std::atomic<float>* formantQ3Param = nullptr;
+    std::atomic<float>* formantGain1Param = nullptr;
+    std::atomic<float>* formantGain2Param = nullptr;
+    std::atomic<float>* formantGain3Param = nullptr;
 
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessor)

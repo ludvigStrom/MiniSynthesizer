@@ -30,7 +30,13 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
                      std::make_unique<juce::AudioParameterFloat>("sampleRateReduction", "Sample Rate Reduction", 200.0f, 20000.0f, 20000.0f),
                      std::make_unique<juce::AudioParameterFloat>("formantFrequency1", "Formant Frequency 1", juce::NormalisableRange<float>(200.0f, 2000.0f), 700.0f),
                      std::make_unique<juce::AudioParameterFloat>("formantFrequency2", "Formant Frequency 2", juce::NormalisableRange<float>(200.0f, 2000.0f), 1200.0f),
-                     std::make_unique<juce::AudioParameterFloat>("formantFrequency3", "Formant Frequency 3", juce::NormalisableRange<float>(200.0f, 2000.0f), 2500.0f)
+                     std::make_unique<juce::AudioParameterFloat>("formantFrequency3", "Formant Frequency 3", juce::NormalisableRange<float>(200.0f, 2000.0f), 2500.0f),
+                     std::make_unique<juce::AudioParameterFloat>("formantQ1", "Formant Q1", juce::NormalisableRange<float>(0.1f, 20.0f, 0.1f), 1.0f),
+                     std::make_unique<juce::AudioParameterFloat>("formantQ2", "Formant Q2", juce::NormalisableRange<float>(0.1f, 20.0f, 0.1f), 1.0f),
+                     std::make_unique<juce::AudioParameterFloat>("formantQ3", "Formant Q3", juce::NormalisableRange<float>(0.1f, 20.0f, 0.1f), 1.0f),
+                     std::make_unique<juce::AudioParameterFloat>("formantGain1", "Formant Gain 1", juce::NormalisableRange<float>(0.0f, 10.0f), 0.5f),
+                     std::make_unique<juce::AudioParameterFloat>("formantGain2", "Formant Gain 2", juce::NormalisableRange<float>(0.0f, 10.0f), 0.5f),
+                     std::make_unique<juce::AudioParameterFloat>("formantGain3", "Formant Gain 3", juce::NormalisableRange<float>(0.0f, 10.0f), 0.5f)
                  })
 {
     osc1TuningParam = parameters.getRawParameterValue("osc1tuning");
@@ -57,6 +63,12 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     formantFrequency1Param = parameters.getRawParameterValue("formantFrequency1");
     formantFrequency2Param = parameters.getRawParameterValue("formantFrequency2");
     formantFrequency3Param = parameters.getRawParameterValue("formantFrequency3");
+    formantQ1Param = parameters.getRawParameterValue("formantQ1");
+    formantQ2Param = parameters.getRawParameterValue("formantQ2");
+    formantQ3Param = parameters.getRawParameterValue("formantQ3");
+    formantGain1Param = parameters.getRawParameterValue("formantGain1");
+    formantGain2Param = parameters.getRawParameterValue("formantGain2");
+    formantGain3Param = parameters.getRawParameterValue("formantGain3");
 
     if (osc1TuningParam == nullptr || osc2TuningParam == nullptr ||
         osc1RangeParam == nullptr || osc2RangeParam == nullptr ||
@@ -78,14 +90,25 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     
     for (int i = 0; i < 8; ++i)
         {
-            synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam, osc1VolumeParameter, osc2VolumeParameter, formantFrequency1Param, formantFrequency2Param, formantFrequency3Param));
+            synth.addVoice(new OscillatorVoice(
+                    osc1TuningParam, osc2TuningParam,
+                    osc1RangeParam, osc2RangeParam,
+                    osc1WaveformParam, osc2WaveformParam,
+                    osc1PWMParam, osc2PWMParam,
+                    osc1AttackParam, osc1DecayParam,
+                    osc1SustainParam, osc1ReleaseParam,
+                    osc2AttackParam, osc2DecayParam,
+                    osc2SustainParam, osc2ReleaseParam,
+                    osc1VolumeParameter, osc2VolumeParameter,
+                    formantFrequency1Param, formantFrequency2Param, formantFrequency3Param,
+                    formantQ1Param, formantQ2Param, formantQ3Param,
+                    formantGain1Param, formantGain2Param, formantGain3Param
+                ));
         }
-    // DBG("MiniSynthesizerAudioProcessor constructor completed");
 }
 
 MiniSynthesizerAudioProcessor::~MiniSynthesizerAudioProcessor()
 {
-    // DBG("MiniSynthesizerAudioProcessor destructor called");
 }
 
 const juce::String MiniSynthesizerAudioProcessor::getName() const
@@ -309,7 +332,9 @@ MiniSynthesizerAudioProcessor::OscillatorVoice::OscillatorVoice(
     std::atomic<float>* osc2AttackParam, std::atomic<float>* osc2DecayParam,
     std::atomic<float>* osc2SustainParam, std::atomic<float>* osc2ReleaseParam,
     std::atomic<float>* osc1VolumeParam, std::atomic<float>* osc2VolumeParam,
-    std::atomic<float>* formantFrequency1Param, std::atomic<float>* formantFrequency2Param, std::atomic<float>* formantFrequency3Param)
+    std::atomic<float>* formantFrequency1Param, std::atomic<float>* formantFrequency2Param, std::atomic<float>* formantFrequency3Param,
+    std::atomic<float>* formantQ1Param, std::atomic<float>* formantQ2Param, std::atomic<float>* formantQ3Param,
+    std::atomic<float>* formantGain1Param, std::atomic<float>* formantGain2Param, std::atomic<float>* formantGain3Param)
     : osc1TuningParameter(osc1TuningParam), osc2TuningParameter(osc2TuningParam),
       osc1RangeParameter(osc1RangeParam), osc2RangeParameter(osc2RangeParam),
       osc1WaveformParameter(osc1WaveformParam), osc2WaveformParameter(osc2WaveformParam),
@@ -319,7 +344,8 @@ MiniSynthesizerAudioProcessor::OscillatorVoice::OscillatorVoice(
       osc2AttackParameter(osc2AttackParam), osc2DecayParameter(osc2DecayParam),
       osc2SustainParameter(osc2SustainParam), osc2ReleaseParameter(osc2ReleaseParam),
       osc1VolumeParameter(osc1VolumeParam), osc2VolumeParameter(osc2VolumeParam),
-      formantFrequency1Parameter(formantFrequency1Param), formantFrequency2Parameter(formantFrequency2Param), formantFrequency3Parameter(formantFrequency3Param),
+      formantFrequency1Parameter(formantFrequency1Param), formantFrequency2Parameter(formantFrequency2Param), formantFrequency3Parameter(formantFrequency3Param),formantQ1Parameter(formantQ1Param), formantQ2Parameter(formantQ2Param), formantQ3Parameter(formantQ3Param),
+formantGain1Parameter(formantGain1Param), formantGain2Parameter(formantGain2Param), formantGain3Parameter(formantGain3Param),
       osc1([](float x) { return std::sin(x); }), osc2([](float x) { return std::sin(x); })
 {
     if (osc1TuningParameter == nullptr || osc2TuningParameter == nullptr ||
@@ -425,11 +451,16 @@ void MiniSynthesizerAudioProcessor::OscillatorVoice::renderNextBlock(juce::Audio
             }
         }
 
-        // Update formant filter parameters
-        formantFilter.setFormantFrequencies(
+        formantFilter.setFormantParameters(
             formantFrequency1Parameter->load(),
             formantFrequency2Parameter->load(),
-            formantFrequency3Parameter->load()
+            formantFrequency3Parameter->load(),
+            formantQ1Parameter->load(),
+            formantQ2Parameter->load(),
+            formantQ3Parameter->load(),
+            formantGain1Parameter->load(),
+            formantGain2Parameter->load(),
+            formantGain3Parameter->load()
         );
         
         // Apply formant filter to the temp buffer (individual voice output)

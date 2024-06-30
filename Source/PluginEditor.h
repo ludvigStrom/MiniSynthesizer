@@ -93,7 +93,27 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantFrequency1Attachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantFrequency2Attachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantFrequency3Attachment;
+    
+    juce::Slider formantQ1Slider;
+    juce::Slider formantQ2Slider;
+    juce::Slider formantQ3Slider;
+    juce::Slider formantGain1Slider;
+    juce::Slider formantGain2Slider;
+    juce::Slider formantGain3Slider;
 
+    juce::Label formantQ1Label;
+    juce::Label formantQ2Label;
+    juce::Label formantQ3Label;
+    juce::Label formantGain1Label;
+    juce::Label formantGain2Label;
+    juce::Label formantGain3Label;
+
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantQ1Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantQ2Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantQ3Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantGain1Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantGain2Attachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> formantGain3Attachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MiniSynthesizerAudioProcessorEditor)
 };

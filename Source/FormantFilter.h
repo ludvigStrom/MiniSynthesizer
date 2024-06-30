@@ -10,8 +10,12 @@ public:
 
     void prepareToPlay(double sampleRate, int samplesPerBlock);
     void processBlock(juce::AudioBuffer<float>& buffer);
-    void setFormantFrequencies(float frequency1, float frequency2, float frequency3);
+    void setFormantParameters(float freq1, float freq2, float freq3,
+                                  float q1, float q2, float q3,
+                                  float gain1, float gain2, float gain3);
     void reset();
+    
+    
 
 private:
     double currentSampleRate;
