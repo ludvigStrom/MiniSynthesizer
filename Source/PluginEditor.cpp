@@ -271,7 +271,7 @@ void MiniSynthesizerAudioProcessorEditor::paint (juce::Graphics& g)
 
     g.setColour (juce::Colours::white);
     g.setFont (15.0f);
-    g.drawFittedText ("MiniSynthesizer", getLocalBounds(), juce::Justification::centredTop, 1);
+    g.drawFittedText ("Formant Synthesizer", getLocalBounds(), juce::Justification::centredTop, 1);
 }
 
 void MiniSynthesizerAudioProcessorEditor::resized()
