@@ -35,6 +35,9 @@ public:
     {
         return isNoteOn || adsr1.isActive() || adsr2.isActive();
     }
+    
+    void updateADSRParameter(float attack1, float decay1, float sustain1, float release1,
+                              float attack2, float decay2, float sustain2, float release2);
 
 private:
     std::atomic<float>* osc1TuningParameter;
@@ -68,7 +71,7 @@ private:
     int noteNumber = -1;
     float currentSampleRate = 44100.0f;
     bool isNoteOn = false;
-
+    
     void updateFrequencies();
     double calculateFrequency(std::atomic<float>* tuningParam, std::atomic<float>* rangeParam);
     void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType, std::atomic<float>* pwmParam);

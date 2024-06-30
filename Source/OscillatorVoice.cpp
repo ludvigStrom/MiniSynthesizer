@@ -54,6 +54,20 @@ OscillatorVoice::OscillatorVoice(
     
 }
 
+void OscillatorVoice::updateADSRParameter(float attack1, float decay1, float sustain1, float release1,
+                                           float attack2, float decay2, float sustain2, float release2)
+{
+    adsr1.setAttack(attack1);
+    adsr1.setDecay(decay1);
+    adsr1.setSustain(sustain1);
+    adsr1.setRelease(release1);
+
+    adsr2.setAttack(attack2);
+    adsr2.setDecay(decay2);
+    adsr2.setSustain(sustain2);
+    adsr2.setRelease(release2);
+}
+
 bool OscillatorVoice::canPlaySound(juce::SynthesiserSound* sound)
 {
     return dynamic_cast<SineWaveSound*>(sound) != nullptr;

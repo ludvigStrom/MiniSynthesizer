@@ -1,7 +1,10 @@
 #include "ADSR.h"
-#include <cmath> // Include for the exp function
+#include <cmath>
 
-ADSR::ADSR() : currentStage(Stage::Idle), envelope(0.0f), sampleRate(44100.0), attackRate(0.0f), decayRate(0.0f), sustainLevel(1.0f), releaseRate(0.0f)
+ADSR::ADSR()
+    : currentStage(Stage::Idle), envelope(0.0f), sampleRate(44100.0),
+      attackRate(0.0f), decayRate(0.0f), sustainLevel(1.0f), releaseRate(0.0f),
+      attackShape(0.3f), decayShape(0.3f), releaseShape(0.3f)
 {
 }
 
@@ -10,42 +13,58 @@ float ADSR::getNextSample()
     switch (currentStage)
     {
         case Stage::Attack:
-            envelope += attackRate * (1.0f - envelope);
+            envelope += attackRate;
             if (envelope >= 1.0f)
             {
                 envelope = 1.0f;
                 currentStage = Stage::Decay;
             }
-            break;
+            return expCurve(envelope, attackShape);
 
         case Stage::Decay:
-            envelope -= decayRate * (envelope - sustainLevel);
+            envelope -= decayRate;
             if (envelope <= sustainLevel)
             {
                 envelope = sustainLevel;
                 currentStage = Stage::Sustain;
             }
-            break;
+            return expCurve(envelope, decayShape);
 
         case Stage::Sustain:
-            // Hold the sustain level
-            envelope = sustainLevel;
-            break;
+            return sustainLevel;
 
         case Stage::Release:
-            envelope -= releaseRate * envelope;
+            envelope -= releaseRate;
             if (envelope <= 0.0f)
             {
                 envelope = 0.0f;
                 currentStage = Stage::Idle;
             }
-            break;
+            return expCurve(envelope, releaseShape);
 
         default:
-            break;
+            return 0.0f;
     }
+}
 
-    return envelope;
+void ADSR::setAttack(float attack)
+{
+    attackRate = 1.0f / (attack * sampleRate);
+}
+
+void ADSR::setDecay(float decay)
+{
+    decayRate = 1.0f / (decay * sampleRate);
+}
+
+void ADSR::setSustain(float sustain)
+{
+    sustainLevel = sustain;
+}
+
+void ADSR::setRelease(float release)
+{
+    releaseRate = 1.0f / (release * sampleRate);
 }
 
 void ADSR::noteOn()
@@ -66,13 +85,18 @@ void ADSR::setSampleRate(double newSampleRate)
 
 void ADSR::setParameters(float attack, float decay, float sustain, float release)
 {
-    attackRate = calculateRate(attack);
-    decayRate = calculateRate(decay);
-    sustainLevel = sustain;
-    releaseRate = calculateRate(release);
+    setAttack(attack);
+    setDecay(decay);
+    setSustain(sustain);
+    setRelease(release);
 }
 
-float ADSR::calculateRate(float time)
+float ADSR::calculateRate(float timeInSeconds)
 {
-    return (time > 0.0f) ? (1.0f - std::exp(-1.0f / (time * sampleRate))) : 1.0f;
+    return 1.0f / (timeInSeconds * sampleRate);
+}
+
+float ADSR::expCurve(float x, float shape)
+{
+    return (1.0f - std::exp(-shape * x)) / (1.0f - std::exp(-shape));
 }

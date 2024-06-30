@@ -42,6 +42,8 @@ public:
 
     juce::AudioProcessorValueTreeState parameters;
     void applyBitcrusher(juce::AudioBuffer<float>& buffer, int numSamples);
+    
+    
 
 
     enum Waveform
@@ -75,6 +77,9 @@ public:
         void renderNextBlock(juce::AudioBuffer<float>&, int startSample, int numSamples) override;
         void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels);
         FormantFilter formantFilter;
+        
+        void updateADSRParameter(float attack1, float decay1, float sustain1, float release1,
+                                     float attack2, float decay2, float sustain2, float release2);
 
     private:
         std::atomic<float>* osc1TuningParameter;
@@ -117,8 +122,6 @@ public:
 
         bool isNoteOn = false;
         
-        
-
         void setOscillatorWaveform(juce::dsp::Oscillator<float>& osc, int waveformType, std::atomic<float>* pwmParam);
         double calculateFrequency(std::atomic<float>* tuningParam, std::atomic<float>* rangeParam);
     };

@@ -4,7 +4,7 @@ FormantFilter::FormantFilter()
     : currentSampleRate(44100.0),
       frequency1(500.0f), frequency2(1500.0f), frequency3(2500.0f),
       q1(10.0f), q2(10.0f), q3(10.0f),
-      gain1(2.0f), gain2(2.0f), gain3(2.0f)
+      gain1(10.0f), gain2(10.0f), gain3(10.0f)
 {
 }
 
@@ -35,7 +35,7 @@ void FormantFilter::setFormantFrequencies(float f1, float f2, float f3)
     frequency2 = f2;
     frequency3 = f3;
     reset();
-    DBG("Formant frequencies set to: " << f1 << ", " << f2 << ", " << f3);
+    //DBG("Formant frequencies set to: " << f1 << ", " << f2 << ", " << f3);
 }
 
 void FormantFilter::reset()

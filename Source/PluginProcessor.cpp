@@ -1,7 +1,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <juce_dsp/juce_dsp.h>
-#include "FormantFilter.h" // Add this line
+#include "FormantFilter.h"
 
 MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
@@ -80,10 +80,6 @@ MiniSynthesizerAudioProcessor::MiniSynthesizerAudioProcessor()
         {
             synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam, osc1VolumeParameter, osc2VolumeParameter, formantFrequency1Param, formantFrequency2Param, formantFrequency3Param));
         }
-    
-    // synth.addVoice(new OscillatorVoice(osc1TuningParam, osc2TuningParam, osc1RangeParam, osc2RangeParam, osc1WaveformParam, osc2WaveformParam, osc1PWMParam, osc2PWMParam, osc1AttackParam, osc1DecayParam, osc1SustainParam, osc1ReleaseParam, osc2AttackParam, osc2DecayParam, osc2SustainParam, osc2ReleaseParam, osc1VolumeParameter, osc2VolumeParameter, formantFrequency1Param, formantFrequency2Param, formantFrequency3Param));
-
-
     // DBG("MiniSynthesizerAudioProcessor constructor completed");
 }
 
@@ -143,7 +139,6 @@ void MiniSynthesizerAudioProcessor::changeProgramName(int index, const juce::Str
 
 void MiniSynthesizerAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    // DBG("Preparing to play with sample rate: " << sampleRate << " and block size: " << samplesPerBlock);
     synth.setCurrentPlaybackSampleRate(sampleRate);
 
     for (int i = 0; i < synth.getNumVoices(); ++i)
@@ -221,10 +216,22 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     // Count active voices and find max amplitude
     int activeVoices = 0;
     float maxAmplitude = 0.0f;
+    
     for (int i = 0; i < synth.getNumVoices(); ++i)
     {
         if (auto voice = dynamic_cast<OscillatorVoice*>(synth.getVoice(i)))
         {
+            voice->updateADSRParameter(
+                osc1AttackParam->load(),
+                osc1DecayParam->load(),
+                osc1SustainParam->load(),
+                osc1ReleaseParam->load(),
+                osc2AttackParam->load(),
+                osc2DecayParam->load(),
+                osc2SustainParam->load(),
+                osc2ReleaseParam->load()
+            );
+            
             if (voice->isVoiceActive())
             {
                 activeVoices++;
@@ -233,16 +240,23 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     }
 
     // Find the maximum amplitude in the buffer
+    float maxAmp = 0.0f;
     for (int channel = 0; channel < totalNumOutputChannels; ++channel)
     {
-        maxAmplitude = std::max(maxAmplitude, buffer.getMagnitude(channel, 0, buffer.getNumSamples()));
+        maxAmp = std::max(maxAmplitude, buffer.getMagnitude(channel, 0, buffer.getNumSamples()));
     }
 
-    // Scale the output to prevent distortion
-    if (activeVoices > 0 && maxAmplitude > 1.0f)
+    // Apply soft clipping
+    if (maxAmp > 0.0f)
     {
-        float scaleFactor = 0.9f / maxAmplitude;  // Leaving some headroom
-        buffer.applyGain(scaleFactor);
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel)
+        {
+            float* channelData = buffer.getWritePointer(channel);
+            for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+            {
+                channelData[sample] = std::tanh(channelData[sample]);
+            }
+        }
     }
 
     // Apply bitcrusher
@@ -265,6 +279,14 @@ void MiniSynthesizerAudioProcessor::getStateInformation(juce::MemoryBlock& destD
     auto state = parameters.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
+}
+
+void MiniSynthesizerAudioProcessor::OscillatorVoice::updateADSRParameter(
+    float attack1, float decay1, float sustain1, float release1,
+    float attack2, float decay2, float sustain2, float release2)
+{
+    osc1ADSR.setParameters(attack1, decay1, sustain1, release1);
+    osc2ADSR.setParameters(attack2, decay2, sustain2, release2);
 }
 
 void MiniSynthesizerAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
