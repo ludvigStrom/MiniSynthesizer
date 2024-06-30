@@ -30,6 +30,11 @@ public:
     void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels);
 
     FormantFilter formantFilter;
+    
+    bool isVoiceActive() const override
+    {
+        return isNoteOn || adsr1.isActive() || adsr2.isActive();
+    }
 
 private:
     std::atomic<float>* osc1TuningParameter;

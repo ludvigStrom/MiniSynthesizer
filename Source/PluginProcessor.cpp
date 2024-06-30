@@ -212,17 +212,41 @@ void MiniSynthesizerAudioProcessor::processBlock(juce::AudioBuffer<float>& buffe
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // Clear any unused output channels
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
-        buffer.clear(i, 0, buffer.getNumSamples());
+    // Clear the buffer first
+    buffer.clear();
 
     // Process the synth voices
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 
+    // Count active voices and find max amplitude
+    int activeVoices = 0;
+    float maxAmplitude = 0.0f;
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto voice = dynamic_cast<OscillatorVoice*>(synth.getVoice(i)))
+        {
+            if (voice->isVoiceActive())
+            {
+                activeVoices++;
+            }
+        }
+    }
+
+    // Find the maximum amplitude in the buffer
+    for (int channel = 0; channel < totalNumOutputChannels; ++channel)
+    {
+        maxAmplitude = std::max(maxAmplitude, buffer.getMagnitude(channel, 0, buffer.getNumSamples()));
+    }
+
+    // Scale the output to prevent distortion
+    if (activeVoices > 0 && maxAmplitude > 1.0f)
+    {
+        float scaleFactor = 0.9f / maxAmplitude;  // Leaving some headroom
+        buffer.applyGain(scaleFactor);
+    }
+
     // Apply bitcrusher
     applyBitcrusher(buffer, buffer.getNumSamples());
-    
-    // You can add any global effects processing here if needed
 }
 
 bool MiniSynthesizerAudioProcessor::hasEditor() const
