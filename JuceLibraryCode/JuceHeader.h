@@ -41,8 +41,8 @@
 #if ! JUCE_DONT_DECLARE_PROJECTINFO
 namespace ProjectInfo
 {
-    const char* const  projectName    = "MiniSynthesizer";
-    const char* const  companyName    = "ludvigstrom";
+    const char* const  projectName    = "Kompetter Formanter";
+    const char* const  companyName    = "Neckbeard Industries";
     const char* const  versionString  = "1.0.0";
     const int          versionNumber  = 0x10000;
 }

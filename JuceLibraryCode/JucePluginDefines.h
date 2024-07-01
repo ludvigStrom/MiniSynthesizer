@@ -41,16 +41,16 @@
  #define JucePlugin_Enable_ARA             0
 #endif
 #ifndef  JucePlugin_Name
- #define JucePlugin_Name                   "MiniSynthesizer"
+ #define JucePlugin_Name                   "Kompetter Formanter"
 #endif
 #ifndef  JucePlugin_Desc
- #define JucePlugin_Desc                   "MiniSynthesizer"
+ #define JucePlugin_Desc                   "Kompetter Formanter"
 #endif
 #ifndef  JucePlugin_Manufacturer
- #define JucePlugin_Manufacturer           "ludvigstrom"
+ #define JucePlugin_Manufacturer           "Neckbeard Industries"
 #endif
 #ifndef  JucePlugin_ManufacturerWebsite
- #define JucePlugin_ManufacturerWebsite    "www.ludvigstrom.com"
+ #define JucePlugin_ManufacturerWebsite    "www.neckbeard.se"
 #endif
 #ifndef  JucePlugin_ManufacturerEmail
  #define JucePlugin_ManufacturerEmail      ""
@@ -101,19 +101,19 @@
  #define JucePlugin_AUSubType              JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_AUExportPrefix
- #define JucePlugin_AUExportPrefix         MiniSynthesizerAU
+ #define JucePlugin_AUExportPrefix         KompetterFormanterAU
 #endif
 #ifndef  JucePlugin_AUExportPrefixQuoted
- #define JucePlugin_AUExportPrefixQuoted   "MiniSynthesizerAU"
+ #define JucePlugin_AUExportPrefixQuoted   "KompetterFormanterAU"
 #endif
 #ifndef  JucePlugin_AUManufacturerCode
  #define JucePlugin_AUManufacturerCode     JucePlugin_ManufacturerCode
 #endif
 #ifndef  JucePlugin_CFBundleIdentifier
- #define JucePlugin_CFBundleIdentifier     com.ludvigstrom.MiniSynthesizer
+ #define JucePlugin_CFBundleIdentifier     com.NeckbeardIndustries.KompetterFormanter
 #endif
 #ifndef  JucePlugin_AAXIdentifier
- #define JucePlugin_AAXIdentifier          com.ludvigstrom.MiniSynthesizer
+ #define JucePlugin_AAXIdentifier          com.NeckbeardIndustries.KompetterFormanter
 #endif
 #ifndef  JucePlugin_AAXManufacturerCode
  #define JucePlugin_AAXManufacturerCode    JucePlugin_ManufacturerCode
@@ -137,7 +137,7 @@
  #define JucePlugin_IAASubType             JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_IAAName
- #define JucePlugin_IAAName                "ludvigstrom: MiniSynthesizer"
+ #define JucePlugin_IAAName                "Neckbeard Industries: Kompetter Formanter"
 #endif
 #ifndef  JucePlugin_VSTNumMidiInputs
  #define JucePlugin_VSTNumMidiInputs       16
@@ -152,10 +152,10 @@
  #define JucePlugin_ARATransformationFlags  0
 #endif
 #ifndef  JucePlugin_ARAFactoryID
- #define JucePlugin_ARAFactoryID           "com.ludvigstrom.MiniSynthesizer.factory"
+ #define JucePlugin_ARAFactoryID           "com.NeckbeardIndustries.KompetterFormanter.factory"
 #endif
 #ifndef  JucePlugin_ARADocumentArchiveID
- #define JucePlugin_ARADocumentArchiveID   "com.ludvigstrom.MiniSynthesizer.aradocumentarchive.1.0.0"
+ #define JucePlugin_ARADocumentArchiveID   "com.NeckbeardIndustries.KompetterFormanter.aradocumentarchive.1.0.0"
 #endif
 #ifndef  JucePlugin_ARACompatibleArchiveIDs
  #define JucePlugin_ARACompatibleArchiveIDs  ""
