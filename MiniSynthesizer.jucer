@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="qJ451i" name="Kompetter Formanter" projectType="audioplug"
+              useAppConfig="0" addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1"
+              companyName="Neckbeard Industries" pluginFormats="buildStandalone,buildVST3"
+              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
+              displaySplashScreen="1" companyWebsite="www.neckbeard.se">
+  <MAINGROUP id="XznXeK" name="Kompetter Formanter">
+    <GROUP id="{34D13FAF-F70B-1115-9C44-84A802A6A36F}" name="Source">
+      <FILE id="Out9hX" name="VoiceManager.h" compile="0" resource="0" file="Source/VoiceManager.h"/>
+      <FILE id="wDtHCq" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="tZ8TsU" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
+      <FILE id="b5sqHR" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="EOAcgi" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+    </GROUP>
+    <FILE id="cUqOO0" name="ADSR.cpp" compile="1" resource="0" file="Source/ADSR.cpp"/>
+    <FILE id="Doi8Z0" name="ADSR.h" compile="0" resource="0" file="Source/ADSR.h"/>
+    <FILE id="ewT0j8" name="FormantFilter.cpp" compile="1" resource="0"
+          file="Source/FormantFilter.cpp"/>
+    <FILE id="UgSRud" name="FormantFilter.h" compile="0" resource="0" file="Source/FormantFilter.h"/>
+    <FILE id="NrfGL8" name="OscillatorVoice.cpp" compile="1" resource="0"
+          file="Source/OscillatorVoice.cpp"/>
+    <FILE id="FZxCdR" name="OscillatorVoice.h" compile="0" resource="0"
+          file="Source/OscillatorVoice.h"/>
+    <FILE id="WPWAVL" name="SineWaveSound.h" compile="0" resource="0" file="Source/SineWaveSound.h"/>
+    <FILE id="Hg9Guh" name="SynthesizerEnums.h" compile="0" resource="0"
+          file="Source/SynthesizerEnums.h"/>
+  </MAINGROUP>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_dsp" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="MiniSynthesizer"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="MiniSynthesizer"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_core" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_events" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../JUCE8/modules"/>
+        <MODULEPATH id="juce_dsp" path="../../JUCE8/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+</JUCERPROJECT>
