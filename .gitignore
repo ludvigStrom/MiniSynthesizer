@@ -1,7 +1,5 @@
 # JUCE Builds
 Builds/
-.jucer
-*.jucer
 
 # Xcode specific
 *.pbxuser
