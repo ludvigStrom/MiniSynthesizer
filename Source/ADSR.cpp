@@ -1,5 +1,4 @@
 #include "ADSR.h"
-#include <cmath>
 
 ADSR::ADSR()
     : currentStage(Stage::Idle), envelope(0.0f), sampleRate(44100.0),
@@ -19,7 +18,7 @@ float ADSR::getNextSample()
                 envelope = 1.0f;
                 currentStage = Stage::Decay;
             }
-            return expCurve(envelope, attackShape);
+            return bicubicCurve(envelope);
 
         case Stage::Decay:
             envelope -= decayRate;
@@ -99,4 +98,12 @@ float ADSR::calculateRate(float timeInSeconds)
 float ADSR::expCurve(float x, float shape)
 {
     return (1.0f - std::exp(-shape * x)) / (1.0f - std::exp(-shape));
+}
+
+float ADSR::bicubicCurve(float x)
+{
+    if (x < 0.5f)
+        return 4.0f * x * x * x;
+    else
+        return 1.0f - std::pow(-2.0f * x + 2.0f, 3.0f) / 2.0f;
 }

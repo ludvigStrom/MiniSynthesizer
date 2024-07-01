@@ -204,32 +204,32 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
 
     // Initialize new formant filter controls
     addAndMakeVisible(formantQ1Slider);
-    formantQ1Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantQ1Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     formantQ1Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
     formantQ1Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantQ1", formantQ1Slider));
 
     addAndMakeVisible(formantQ2Slider);
-    formantQ2Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantQ2Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     formantQ2Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
     formantQ2Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantQ2", formantQ2Slider));
 
     addAndMakeVisible(formantQ3Slider);
-    formantQ3Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantQ3Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     formantQ3Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
     formantQ3Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantQ3", formantQ3Slider));
 
     addAndMakeVisible(formantGain1Slider);
-    formantGain1Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantGain1Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     formantGain1Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
     formantGain1Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantGain1", formantGain1Slider));
 
     addAndMakeVisible(formantGain2Slider);
-    formantGain2Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantGain2Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     formantGain2Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
     formantGain2Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantGain2", formantGain2Slider));
 
     addAndMakeVisible(formantGain3Slider);
-    formantGain3Slider.setSliderStyle(juce::Slider::LinearVertical);
+    formantGain3Slider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     formantGain3Slider.setTextBoxStyle(juce::Slider::TextBoxBelow, false, 90, 20);
     formantGain3Attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(valueTreeState, "formantGain3", formantGain3Slider));
 
@@ -258,7 +258,7 @@ MiniSynthesizerAudioProcessorEditor::MiniSynthesizerAudioProcessorEditor (MiniSy
     formantGain3Label.setText("Gain3", juce::dontSendNotification);
     formantGain3Label.attachToComponent(&formantGain3Slider, false);
     
-    setSize (1000, 400); // Adjust size as needed to fit all controls
+    setSize (1000, 600); // Adjust size as needed to fit all controls
 }
 
 MiniSynthesizerAudioProcessorEditor::~MiniSynthesizerAudioProcessorEditor()
@@ -282,7 +282,7 @@ void MiniSynthesizerAudioProcessorEditor::resized()
     auto title = area.removeFromTop(area.getHeight() * 0.05);
 
     // Bitcrusher controlls
-    auto fxArea = area.removeFromRight(250);
+    auto fxArea = area.removeFromRight(sliderWidth * 3);
     
     auto bitcrusherArea = fxArea.removeFromTop(fxArea.getHeight()/4);
     auto bitcrusherSliderWidth = bitcrusherArea.getWidth() / 3;

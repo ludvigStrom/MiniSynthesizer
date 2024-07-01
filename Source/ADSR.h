@@ -43,6 +43,7 @@ private:
 
     float calculateRate(float timeInSeconds);
     float expCurve(float x, float shape);
+    float bicubicCurve(float x);
 };
 
 inline bool ADSR::isActive() const
